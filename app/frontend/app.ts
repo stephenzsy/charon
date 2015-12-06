@@ -3,9 +3,20 @@
 
 'use strict';
 
+var app: ng.IModule = angular.module('charon', ['ngRoute']);
+app.config(['$routeProvider', '$locationProvider', function($routeProvider: ng.route.IRouteProvider, $locationProvider: ng.ILocationProvider) {
+  $locationProvider.html5Mode(true);
+  $routeProvider.when('/', {
+    templateUrl: 'views/_welcome.html',
+    controller: 'WelcomeController'
+  }).when('/admin', {
+    templateUrl: 'views/_admin.html',
+    controller: 'AdminController'
+  });
+}]);
 
-var app: angular.IModule = angular.module('charon', ['ngRoute']);
+app.controller('WelcomeController', function() {
+});
 
-app.controller('MainController', function($scope: angular.IScope, $route: angular.route.IRouteService, $location: angular.ILocationService) { 
-	
+app.controller('AdminController', function() {
 });
