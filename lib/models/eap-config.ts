@@ -7,6 +7,6 @@ export interface EapPeapModel {
 }
 
 export interface EapModel {
-	tls: EapTlsModel;
-	peap: EapPeapModel;
+  tls: EapTlsModel;
+  peap: EapPeapModel;
 }

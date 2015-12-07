@@ -6,6 +6,7 @@ var rename = require('gulp-rename');
 gulp.task('tsc', function() {
   var tsProject = ts.createProject(__dirname + '/tsconfig.json');
   return gulp.src([
+      'app/api/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
     ], {
@@ -31,6 +32,7 @@ gulp.task('tsc-frontend', function() {
 
 gulp.task('babel', ['tsc'], function() {
   return gulp.src([
+      'app/api/**/*.babel',
       'lib/**/*.babel',
       'routes/**/*.babel',
     ], {

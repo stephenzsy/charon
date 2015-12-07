@@ -8,3 +8,5 @@ scripts/**/*.js
 typings
 public/javascripts/app/**/*.js
 *.log
+/certs
+/config
