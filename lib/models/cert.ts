@@ -14,6 +14,6 @@ export class CaCert implements CertBundle {
   }
 
   get certificatePemFile(): string {
-    return this.config.certFile;
+    return this.config.certificatePemFile;
   }
 }

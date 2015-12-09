@@ -1,3 +1,12 @@
-<div>
+<div ng-controller="WelcomeController">
   <h1>Welcome</h1>
+  <div>
+    <h2>CA Certificate</h2>
+    <button class="btn-link" type="button" data-toggle="collapse" data-target="#ca-cert-metadata-container" aria-expanded="false" aria-controls="ca-cert-metadata-container">Certificate Metadata</button>
+    <div class="collapse" id="ca-cert-metadata-container">
+      <div class="well">
+        {{caCertMetadata}}
+      </div>
+    </div>
+  </div>
 </div>

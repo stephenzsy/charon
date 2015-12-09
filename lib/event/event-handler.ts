@@ -13,7 +13,13 @@ export interface Event<TRequest, TResult> {
 export abstract class RequestEventHandlerFactory<TRequest, TResult> {
 
   protected abstract getRequest(expressReq: express.Request): TRequest;
-  protected abstract handleAsync(req: TRequest): Q.Promise<TResult>;
+  protected handleAsync(req: TRequest): Q.Promise<TResult> {
+    throw 'Not Implemented';
+  }
+  protected handle(req: TRequest): TResult {
+    throw 'Not Implemented';
+  }
+  protected get isAsync(): boolean { return true; }
 
   private createEvent(req: express.Request, res: express.Response): Event<TRequest, TResult> {
     return {
@@ -26,13 +32,22 @@ export abstract class RequestEventHandlerFactory<TRequest, TResult> {
     return (req: express.Request, res: express.Response) => {
       var event: Event<TRequest, TResult> = this.createEvent(req, res);
       event.req = this.getRequest(req);
-      this.handleAsync(event.req).then((result: TResult) => {
-        event.res = result;
-        event.originalResponse.send(result);
-      }, (err: any) => {
-          console.error(err);
+      if (this.isAsync) {
+        this.handleAsync(event.req).then((result: TResult) => {
+          event.res = result;
+          event.originalResponse.send(result);
+        }, (err: any) => {
+            console.error(err);
+            event.originalResponse.sendStatus(500);
+          });
+      } else {
+        try {
+          let result: TResult = this.handle(event.req);
+          event.originalResponse.send(result);
+        } catch (e) {
           event.originalResponse.sendStatus(500);
-        });
+        }
+      }
     };
   }
 }

@@ -8,13 +8,17 @@ import {CaCert} from '../models/cert';
 import {CaCertConfig} from '../models/certs-config';
 
 export class CaCertManager {
-  private caCert: CaCert;
+  private caCertConfig: CaCertConfig;
 
   constructor(config: CaCertConfig) {
-    this.caCert = new CaCert(config);
+    this.caCertConfig = config;
   }
 
-  get certPath(): string {
-    return this.caCert.certificatePemFile;
+  get certificatePemFile(): string {
+    return this.caCertConfig.certificatePemFile;
+  }
+
+  get certificateMetadata(): string {
+    return this.caCertConfig.certificateMetadata;
   }
 }

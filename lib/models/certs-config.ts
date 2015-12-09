@@ -1,3 +1,4 @@
 export interface CaCertConfig {
-  certFile: string;
+  certificatePemFile: string;
+  certificateMetadata: string;
 }
