@@ -5,7 +5,7 @@
 import * as Q from 'q';
 import * as express from 'express';
 import {CaCert} from '../models/cert';
-import {CaCertConfig} from '../models/certs-config';
+import {CaCertConfig} from '../models/security-configs';
 
 export class CaCertManager {
   private caCertConfig: CaCertConfig;

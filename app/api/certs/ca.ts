@@ -7,7 +7,6 @@ import * as express from 'express';
 import {RequestEventHandlerFactory} from '../../../lib/event/event-handler';
 import {CaCertManager} from '../../../lib/certs/ca-cert-manager';
 
-var router: express.Router = express.Router();
 var caCertManager: CaCertManager = new CaCertManager(require('../../../config/certs/ca/ca.json'));
 
 interface GetCertsCaRequest { }

@@ -1,6 +1,6 @@
 'use strict';
 
-import { CaCertConfig } from './certs-config';
+import { CaCertConfig } from './security-configs';
 
 export interface CertBundle {
   certificatePemFile: string;

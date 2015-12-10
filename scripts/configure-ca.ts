@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as command from 'commander';
 
-import {CaCertConfig} from '../lib/models/certs-config';
+import {CaCertConfig} from '../lib/models/security-configs';
 
 command
   .option('--ca-cert-pem <path>', 'CA certificate PEM file path')
@@ -21,7 +21,6 @@ if (!fs.statSync(caCertPath).isFile) {
 }
 var configCertsCaDir: string = path.join(__dirname, '../config/certs/ca');
 var configCertsCaPem: string = path.join(configCertsCaDir, 'ca.pem');
-var configCertsCaText: string = path.join(configCertsCaDir, 'ca.txt');
 var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
 
 fsExtra.mkdirpSync(configCertsCaDir);

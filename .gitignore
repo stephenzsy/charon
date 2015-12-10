@@ -5,7 +5,7 @@ lib/**/*.js
 routes/**/*.js
 scripts/**/*.js
 **/*.js.map
-typings
+/typings
 public/javascripts/app/**/*.js
 *.log
 /certs

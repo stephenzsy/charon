@@ -9,6 +9,7 @@ gulp.task('tsc', function() {
       'app/api/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
+      'scripts/**/*.ts',
     ], {
       base: './'
     })
@@ -35,6 +36,7 @@ gulp.task('babel', ['tsc'], function() {
       'app/api/**/*.babel',
       'lib/**/*.babel',
       'routes/**/*.babel',
+      'scripts/**/*.babel',
     ], {
       base: './'
     })
