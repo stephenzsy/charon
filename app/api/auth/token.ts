@@ -8,48 +8,15 @@ import * as express from 'express';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
-import {RequestEventHandlerFactory, BadRequestError} from '../../../lib/event/event-handler';
+import {ActionEnactor, RequestModelConverter, HandlerUtils} from '../../../lib/event/event-handler';
 import {AuthTokenConfig} from '../../../lib/models/security-configs';
+import {GetTokenRequest, GetTokenResult, TokenScope} from '../../../lib/models/contracts/auth';
+import {BadRequestError} from '../../../lib/models/errors';
 
 var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
 
-interface GetTokenRequest {
-  scope: string;
-}
-
-interface GetTokenResult {
-  scope: string;
-  token: string;
-}
-
-const ScopePublic: string = 'public';
-const ScopeAdmin: string = 'admin';
-
-class GetTokenHandlerFactory extends RequestEventHandlerFactory<GetTokenRequest, GetTokenResult>{
-  protected getRequest(expressReq: express.Request): GetTokenRequest {
-    let scope: string = ScopePublic;
-    if (expressReq.query && expressReq.query['scope']) {
-      switch (expressReq.query['scope']) {
-        case ScopePublic:
-          scope = ScopePublic;
-          break;
-        case ScopeAdmin:
-          scope = ScopeAdmin;
-          break;
-        default:
-          throw new BadRequestError('Invalid Request');
-      }
-    }
-    return {
-      scope: scope
-    };
-  }
-
-  protected get isAsync(): boolean {
-    return true;
-  }
-
-  protected handleAsync(req: GetTokenRequest): Q.Promise<GetTokenResult> {
+class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
+  enactAsync(req: GetTokenRequest): Q.Promise<GetTokenResult> {
     var deferred: Q.Deferred<string> = Q.defer<string>();
     jwt.sign({ scope: req.scope }, tokenConfig.privateKey, {
       algorithm: 'ES384',
@@ -66,4 +33,26 @@ class GetTokenHandlerFactory extends RequestEventHandlerFactory<GetTokenRequest,
   }
 }
 
-export var getTokenHandler: express.RequestHandler = (new GetTokenHandlerFactory()).handler;
+export module Handlers {
+  export var getTokenHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetTokenRequest, GetTokenResult>({
+    requestModelConverter: (req: express.Request): GetTokenRequest=> {
+      let scope: string = TokenScope.Public;
+      if (req.query && req.query['scope']) {
+        switch (req.query['scope']) {
+          case TokenScope.Public:
+            scope = TokenScope.Public;
+            break;
+          case TokenScope.Admin:
+            scope = TokenScope.Admin;
+            break;
+          default:
+            throw new BadRequestError('Invalid Request');
+        }
+      }
+      return {
+        scope: scope
+      };
+    },
+    enactor: new GetTokenEnactor()
+  });
+}

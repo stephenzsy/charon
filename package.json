@@ -19,6 +19,7 @@
     "jsonwebtoken": "^5.4.1",
     "morgan": "~1.6.1",
     "mysql": "^2.9.0",
+    "node-uuid": "^1.4.7",
     "q": "^1.4.1",
     "serve-favicon": "~2.3.0",
     "systemjs": "^0.19.6"

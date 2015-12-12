@@ -4,19 +4,20 @@
 
 import * as path from 'path';
 import * as express from 'express';
-import {getTokenHandler} from '../app/api/auth/token';
-import {getCertsCaHandler} from '../app/api/certs/ca';
+import {Handlers as AuthTokenHandlers} from '../app/api/auth/token';
+import {Handlers as CertsCaHandlers} from '../app/api/certs/ca';
 
 var router: express.Router = express.Router();
 
-// auth
-router.get('/auth/token', getTokenHandler);
-
 // TODO: AuthN
+
+// auth
+router.get('/auth/token', AuthTokenHandlers.getTokenHandler);
+
 // TODO: AuthZ
 
 // certs
-router.get('/certs/ca', getCertsCaHandler);
+router.get('/certs/ca', CertsCaHandlers.getCaHandler);
 
 router.get('*', function(req, res) {
   res.sendStatus(404);
