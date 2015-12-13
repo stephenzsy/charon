@@ -4,8 +4,13 @@
 import * as express from 'express';
 import * as UUID from 'node-uuid';
 import * as Q from 'q';
+import * as jwt from 'jsonwebtoken';
 
-import {UserError} from '../models/errors';
+import {AuthTokenConfig, TokenScope, TokenContext} from '../models/security-configs';
+import {AuthorizationError, UserError} from '../models/errors';
+import {ErrorCodes} from '../models/contracts/errors';
+
+var tokenConfig: AuthTokenConfig = require('../../config/auth-token.json');
 
 interface Event {
   reqId: string;
@@ -15,6 +20,10 @@ interface Event {
   isTerminal: boolean;
   expressReq?: express.Request;
   expressRes?: express.Response;
+  authorization?: {
+    err?: AuthorizationError;
+    tokenContext?: TokenContext;
+  }
   action?: {
     in?: any;
     out?: any;
@@ -61,15 +70,16 @@ class EventHandlerChain {
 
   private handleInternal(event: Event, handlerContainer: EventHandlerContainer): Q.Promise<Event> {
     var handler: EventHandler = handlerContainer.handler;
-    return handler.before(event)
-      .then((postBeforeEvent: Event): Event | Q.Promise<Event> => {
-      if (!postBeforeEvent.isTerminal && handlerContainer.next) {
-        return this.handleInternal(postBeforeEvent, handlerContainer.next);
-      }
-      return event;
-    }).then((postNextEvent: Event): Q.Promise<Event>=> {
-      return handler.after(postNextEvent);
-    });
+    return handler.before(event).then(
+      (postBeforeEvent: Event): Event | Q.Promise<Event> => {
+        if (!postBeforeEvent.isTerminal && handlerContainer.next) {
+          return this.handleInternal(postBeforeEvent, handlerContainer.next);
+        }
+        return event;
+      }).then(
+      (postNextEvent: Event): Q.Promise<Event>=> {
+        return handler.after(postNextEvent);
+      });
   }
 }
 
@@ -116,6 +126,8 @@ export type RequestModelConverter<TInput> = (req: express.Request) => TInput;
 export interface RequestEventHandlerOptions<TInput, TOutput> {
   enactor: ActionEnactor<TInput, TOutput>;
   requestModelConverter: RequestModelConverter<TInput>;
+  skipAutorization?: boolean;
+  requireAdminAuthoriztaion?: boolean;
 }
 
 class RequestModelHandler<TInput> implements EventHandler {
@@ -153,6 +165,48 @@ class RequestModelHandler<TInput> implements EventHandler {
   }
 }
 
+class JsonWebTokenAuthorizationHandler implements EventHandler {
+  private authTokenConfig: AuthTokenConfig;
+  private authorizedScopes: string[];
+
+  constructor(authTokenConfig: AuthTokenConfig, authorizedScopes: string[]) {
+    this.authTokenConfig = authTokenConfig;
+    this.authorizedScopes = authorizedScopes;
+  }
+
+  before(event: Event): Q.Promise<Event> {
+    event.authorization = {};
+    var token: string = event.expressReq.get('x-access-token') || event.expressReq.query['token'];
+    if (!token) {
+      event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.AuthorizationRequired, "Authorization token is required");
+      event.isTerminal = true;
+      return Q.resolve(event);
+    }
+    return Q.nfcall(jwt.verify, token, this.authTokenConfig.publicKey).then(
+      (tokenContext: TokenContext): Event=> {
+        if (this.authorizedScopes.indexOf(tokenContext.scope) < 0) {
+          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, "Insufficient privileges");
+          event.isTerminal = true;
+        } else {
+          event.authorization.tokenContext = tokenContext;
+        }
+        return event;
+      }, (err): Event => {
+        event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+        event.isTerminal = true;
+        return event;
+      });
+  }
+
+  after(event: Event): Q.Promise<Event> {
+    if (event.authorization && event.authorization.err) {
+      var err = event.authorization.err;
+      event.expressRes.status(403).send(err.jsonObj);
+    }
+    return Q.resolve(event);
+  }
+}
+
 export class HandlerUtils {
   private static createEvent(req: express.Request, res: express.Response): Event {
     return {
@@ -165,6 +219,13 @@ export class HandlerUtils {
 
   public static newRequestHandler<TInput, TOutput>(options: RequestEventHandlerOptions<TInput, TOutput>): express.RequestHandler {
     var handlers: EventHandler[] = [];
+    if (!options.skipAutorization) {
+      if (options.requireAdminAuthoriztaion) {
+        handlers.push(new JsonWebTokenAuthorizationHandler(tokenConfig, [TokenScope.Admin]))
+      } else {
+        handlers.push(new JsonWebTokenAuthorizationHandler(tokenConfig, [TokenScope.Public, TokenScope.Admin]))
+      }
+    }
 
     handlers.push(new RequestModelHandler(options.requestModelConverter));
     handlers.push(new ActionHandler(options.enactor));

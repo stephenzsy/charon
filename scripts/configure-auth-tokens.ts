@@ -10,16 +10,24 @@ import * as command from 'commander';
 
 import {AuthTokenConfig} from '../lib/models/security-configs';
 
-// create private key
-var privateKey: string = child_process.execFileSync('openssl', [
-  'ecparam', '-genkey', '-name', 'secp384r1'
-]).toString();
-
-var config:AuthTokenConfig = {
-  privateKey: privateKey
-};
 var configDir: string = path.join(__dirname, '../config');
+var configTokenCertsDir: string = path.join(configDir, 'certs', 'auth');
+fsExtra.mkdirpSync(configTokenCertsDir);
+
+var ecParamPem: string = path.join(configTokenCertsDir, 'secp384r1.pem');
+var ecPrivateKeyPem: string = path.join(configTokenCertsDir, 'ecPrivateKey.pem');
+var ecPublicKeyPem: string = path.join(configTokenCertsDir, 'ecPublicKey.pem');
+
+// create ecparam
+child_process.execFileSync('openssl', ['ecparam', '-name', 'secp384r1', '-out', ecParamPem]);
+child_process.execFileSync('openssl', ['ecparam', '-in', ecParamPem, '-genkey', '-noout', '-out', ecPrivateKeyPem]);
+child_process.execFileSync('openssl', ['ec', '-in', ecPrivateKeyPem, '-pubout', '-out', ecPublicKeyPem]);
+
+var config: AuthTokenConfig = {
+  algorithm: 'ES384',
+  privateKey: fs.readFileSync(ecPrivateKeyPem).toString(),
+  publicKey: fs.readFileSync(ecPublicKeyPem).toString()
+};
 var configFile: string = path.join(configDir, 'auth-token.json');
 
-fsExtra.mkdirpSync(configDir);
 fsExtra.writeJsonSync(configFile, config);

@@ -9,8 +9,8 @@ import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
 import {ActionEnactor, RequestModelConverter, HandlerUtils} from '../../../lib/event/event-handler';
-import {AuthTokenConfig} from '../../../lib/models/security-configs';
-import {GetTokenRequest, GetTokenResult, TokenScope} from '../../../lib/models/contracts/auth';
+import {AuthTokenConfig, TokenScope, TokenContext} from '../../../lib/models/security-configs';
+import {GetTokenRequest, GetTokenResult} from '../../../lib/models/contracts/auth';
 import {BadRequestError} from '../../../lib/models/errors';
 
 var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
@@ -18,10 +18,12 @@ var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
 class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
   enactAsync(req: GetTokenRequest): Q.Promise<GetTokenResult> {
     var deferred: Q.Deferred<string> = Q.defer<string>();
-    jwt.sign({ scope: req.scope }, tokenConfig.privateKey, {
-      algorithm: 'ES384',
-      expiresIn: '1h'
-    }, function(token: string) {
+    jwt.sign(
+      <TokenContext>{ scope: req.scope },
+      tokenConfig.privateKey, {
+        algorithm: tokenConfig.algorithm,
+        expiresIn: '1h'
+      }, (token: string) => {
         deferred.resolve(token);
       });
     return deferred.promise.then((token: string): GetTokenResult => {
@@ -53,6 +55,7 @@ export module Handlers {
         scope: scope
       };
     },
+    skipAutorization: true,
     enactor: new GetTokenEnactor()
   });
 }

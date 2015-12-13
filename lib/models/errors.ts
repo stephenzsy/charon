@@ -1,3 +1,4 @@
+import * as Contracts from './contracts/errors';
 
 // Errors
 abstract class BaseError {
@@ -5,7 +6,7 @@ abstract class BaseError {
 
   constructor(message: string) {
     this._message = message;
-  }
+  } InsufficientPrivliges
 
   get message() {
     return this._message;
@@ -16,10 +17,30 @@ abstract class BaseError {
  * Expected error caused by user
  */
 export class UserError extends BaseError {
-  get jsonObj() {
+  get jsonObj(): Contracts.UserError {
     return {
       message: this.message
     };
+  }
+}
+
+export class AuthorizationError extends UserError {
+  private _code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this._code = code;
+  }
+
+  get code(): string {
+    return this._code;
+  }
+
+  get jsonObj(): Contracts.AuthorizationError {
+    return {
+      code: this.code,
+      message: this.message
+    }
   }
 }
 

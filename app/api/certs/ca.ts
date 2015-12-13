@@ -7,7 +7,6 @@ import * as express from 'express';
 
 import {SyncActionEnactor, RequestModelConverter, HandlerUtils} from '../../../lib/event/event-handler';
 import {GetCaRequest, GetCaResult} from '../../../lib/models/contracts/certs';
-//import {BadRequestError} from '../../../lib/models/errors';
 import {CaCertManager} from '../../../lib/certs/ca-cert-manager';
 
 var caCertManager: CaCertManager = new CaCertManager(require('../../../config/certs/ca/ca.json'));
