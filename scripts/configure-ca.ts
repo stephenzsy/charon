@@ -6,15 +6,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as fsExtra from 'fs-extra';
-import * as command from 'commander';
+import * as commander from 'commander';
 
 import {CaCertConfig} from '../lib/models/security-configs';
 
-command
+var cmd: commander.ICommand = new commander.Command()
   .option('--ca-cert-pem <path>', 'CA certificate PEM file path')
   .parse(process.argv);
 
-var caCertPath: string = command['caCertPem'];
+var caCertPath: string = cmd.opts()['caCertPem'];
 
 if (!fs.statSync(caCertPath).isFile) {
   throw 'Invalid file path: ' + caCertPath;

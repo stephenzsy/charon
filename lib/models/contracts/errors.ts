@@ -7,6 +7,7 @@ export module ErrorCodes {
     export var InsufficientPrivileges: string = 'InsufficientPrivileges';
     export var InvalidToken: string = 'InvalidToken';
     export var AuthorizationRequired: string = 'AuthorizationTokenRequired';
+    export var TokenExpired: string = 'TokenExpired';
   }
 }
 

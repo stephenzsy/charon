@@ -6,8 +6,9 @@ import * as UUID from 'node-uuid';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
-import {AuthTokenConfig, TokenScope, TokenContext} from '../models/security-configs';
+import {AuthTokenConfig, TokenContext} from '../models/security-configs';
 import {AuthorizationError, UserError} from '../models/errors';
+import {TokenScope} from '../models/contracts/common';
 import {ErrorCodes} from '../models/contracts/errors';
 
 var tokenConfig: AuthTokenConfig = require('../../config/auth-token.json');
@@ -192,7 +193,11 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
         }
         return event;
       }, (err): Event => {
-        event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+        if (err && err.name === 'TokenExpiredError') {
+          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
+        } else {
+          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+        }
         event.isTerminal = true;
         return event;
       });
