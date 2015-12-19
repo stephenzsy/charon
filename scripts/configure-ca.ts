@@ -14,7 +14,7 @@ var cmd: commander.ICommand = new commander.Command()
   .option('--ca-cert-pem <path>', 'CA certificate PEM file path')
   .parse(process.argv);
 
-var caCertPath: string = cmd.opts()['caCertPem'];
+var caCertPath: string = cmd['caCertPem'];
 
 if (!fs.statSync(caCertPath).isFile) {
   throw 'Invalid file path: ' + caCertPath;

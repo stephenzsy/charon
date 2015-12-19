@@ -186,7 +186,7 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
     return Q.nfcall(jwt.verify, token, this.authTokenConfig.publicKey).then(
       (tokenContext: TokenContext): Event=> {
         if (this.authorizedScopes.indexOf(tokenContext.scope) < 0) {
-          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, "Insufficient privileges");
+          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, "Insufficient privileges");
           event.isTerminal = true;
         } else {
           event.authorization.tokenContext = tokenContext;
@@ -194,9 +194,9 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
         return event;
       }, (err): Event => {
         if (err && err.name === 'TokenExpiredError') {
-          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
+          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
         } else {
-          event.authorization.err = event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
         }
         event.isTerminal = true;
         return event;
