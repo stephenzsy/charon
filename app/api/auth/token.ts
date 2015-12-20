@@ -8,7 +8,7 @@ import * as express from 'express';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
-import {ActionEnactor, RequestModelConverter, HandlerUtils} from '../../../lib/event/event-handler';
+import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {AuthTokenConfig, TokenContext} from '../../../lib/models/security-configs';
 import {TokenScope} from '../../../lib/models/contracts/common';
 import {GetTokenRequest, GetTokenResult} from '../../../lib/models/contracts/auth';
@@ -30,7 +30,8 @@ class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
     return deferred.promise.then((token: string): GetTokenResult => {
       return {
         scope: req.scope,
-        token: token
+        token: token,
+        expiry: Date.now() + 30 * 60 * 1000
       };
     })
   }
@@ -38,7 +39,7 @@ class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
 
 export module Handlers {
   export var getTokenHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetTokenRequest, GetTokenResult>({
-    requestModelConverter: (req: express.Request): GetTokenRequest=> {
+    requestDeserializer: (req: express.Request): GetTokenRequest=> {
       let scope: string = TokenScope.Public;
       if (req.query && req.query['scope']) {
         switch (req.query['scope']) {

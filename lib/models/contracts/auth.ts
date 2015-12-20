@@ -5,4 +5,5 @@ export interface GetTokenRequest {
 export interface GetTokenResult {
   scope: string;
   token: string;
+  expiry: number;
 }

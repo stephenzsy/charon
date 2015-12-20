@@ -122,26 +122,33 @@ class ActionHandler<TInput, TOutput> implements EventHandler {
   }
 }
 
-export type RequestModelConverter<TInput> = (req: express.Request) => TInput;
+export type RequestDeserializer<TInput> = (req: express.Request) => TInput;
+export type ResultSerializer<TOutput> = (result: TOutput, expressRes: express.Response) => void;
+export const jsonResultSerializer: ResultSerializer<any> = (result: any, expressRes: express.Response): void => {
+  expressRes.status(200).send(result);
+}
 
 export interface RequestEventHandlerOptions<TInput, TOutput> {
   enactor: ActionEnactor<TInput, TOutput>;
-  requestModelConverter: RequestModelConverter<TInput>;
+  requestDeserializer: RequestDeserializer<TInput>;
+  resultSerializer?: ResultSerializer<TOutput>;
   skipAutorization?: boolean;
   requireAdminAuthoriztaion?: boolean;
 }
 
-class RequestModelHandler<TInput> implements EventHandler {
-  private requestModelConverter: RequestModelConverter<TInput>;
+class RequestModelHandler<TInput, TOutput> implements EventHandler {
+  private requestDeserializer: RequestDeserializer<TInput>;
+  private resultSerializer: ResultSerializer<TOutput>;
 
-  constructor(requestModelConverter: RequestModelConverter<TInput>) {
-    this.requestModelConverter = requestModelConverter;
+  constructor(requestDeserializer: RequestDeserializer<TInput>, resultSerializer: ResultSerializer<TOutput>) {
+    this.requestDeserializer = requestDeserializer;
+    this.resultSerializer = resultSerializer;
   }
 
   before(event: Event): Q.Promise<Event> {
     event.action = {};
     try {
-      event.action.in = this.requestModelConverter(event.expressReq);
+      event.action.in = this.requestDeserializer(event.expressReq);
     } catch (err) {
       event.action.err = err;
       event.isTerminal = true;
@@ -158,7 +165,7 @@ class RequestModelHandler<TInput> implements EventHandler {
         event.expressRes.sendStatus(500);
       }
     } else if (event.action.out) {
-      event.expressRes.status(200).send(event.action.out);
+      this.resultSerializer(event.action.out, event.expressRes);
     } else {
       event.expressRes.sendStatus(200);
     }
@@ -232,7 +239,9 @@ export class HandlerUtils {
       }
     }
 
-    handlers.push(new RequestModelHandler(options.requestModelConverter));
+    var serializer: ResultSerializer<TOutput> = (options.resultSerializer) ? options.resultSerializer : jsonResultSerializer;
+    handlers.push(new RequestModelHandler(options.requestDeserializer, serializer));
+
     handlers.push(new ActionHandler(options.enactor));
 
     var handlerChain: EventHandlerChain = new EventHandlerChain(handlers);
