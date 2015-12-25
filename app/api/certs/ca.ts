@@ -7,17 +7,15 @@ import * as express from 'express';
 
 import {SyncActionEnactor, RequestDeserializer, HandlerUtils, jsonResultSerializer} from '../../../lib/event/event-handler';
 import {GetCaRequest, GetCaResult, CertFormat} from '../../../lib/models/contracts/certs';
-import {CaCertManager} from '../../../lib/certs/ca-cert-manager';
-
-var caCertManager: CaCertManager = new CaCertManager(require('../../../config/certs/ca/ca.json'));
+import * as CertsCa from '../../../lib/certs/ca';
 
 class GetCaEnactor extends SyncActionEnactor<GetCaRequest, GetCaResult>{
   enactSync(req: GetCaRequest): GetCaResult {
     var result: GetCaResult = {
-      rawCertificateMetadata: caCertManager.certificateMetadata
+      rawCertificateMetadata: CertsCa.caCertBundle.certificateMetadata
     };
     if (req.format === CertFormat.Pem) {
-      result._certificatePemPath = caCertManager.certificatePemFile
+      result._certificatePemPath = CertsCa.caCertBundle.certificatePemFile
     }
     return result;
   }

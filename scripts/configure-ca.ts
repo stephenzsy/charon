@@ -8,33 +8,81 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as commander from 'commander';
 
-import {CaCertConfig} from '../lib/models/security-configs';
+import {CertConfig} from '../lib/models/security-configs';
+import {CertsConfig} from './interfaces';
 
-var cmd: commander.ICommand = new commander.Command()
-  .option('--ca-cert-pem <path>', 'CA certificate PEM file path')
-  .parse(process.argv);
+var certsConfig: CertsConfig = require('../config/certs-config.json');
 
-var caCertPath: string = cmd['caCertPem'];
-
-if (!fs.statSync(caCertPath).isFile) {
-  throw 'Invalid file path: ' + caCertPath;
+function getSubject(config: CertsConfig) {
+  if (!config) {
+    throw 'No configuraiton'
+  }
+  var subj: string = '';
+  if (!config.country) {
+    throw 'Country code required for cert subject'
+  }
+  subj += '/C=' + config.country;
+  if (!config.stateOrProviceName) {
+    throw 'State or province name required for cert subject';
+  }
+  subj += '/ST=' + config.stateOrProviceName;
+  if (!config.localityName) {
+    throw 'Locality name required for cert subject';
+  }
+  subj += '/L=' + config.localityName;
+  if (!config.organizationName) {
+    throw 'Organization name required for cert subject';
+  }
+  subj += '/O=' + config.organizationName;
+  if (config.organizationUnitName) {
+    subj += '/OU=' + config.organizationUnitName;
+  }
+  if (!config.commonName) {
+    throw 'Common name required for cert subject';
+  }
+  subj += '/CN=' + config.commonName;
+  if (config.emailAddress) {
+    subj += '/emailAddress=' + config.emailAddress;
+  }
+  return subj;
 }
+
 var configCertsCaDir: string = path.join(__dirname, '../config/certs/ca');
-var configCertsCaPem: string = path.join(configCertsCaDir, 'ca.pem');
-var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
+var configCertsCaKeyPem: string = path.join(configCertsCaDir, 'ca-key.pem');
+var configCertsCaCertPem: string = path.join(configCertsCaDir, 'ca-crt.pem');
 
 fsExtra.mkdirpSync(configCertsCaDir);
-fsExtra.copySync(caCertPath, configCertsCaPem);
+
+// create CA private key
+child_process.execFileSync('openssl', [
+  'ecparam',
+  '-out', configCertsCaKeyPem,
+  '-name', 'secp384r1',
+  '-genkey']);
+
+// create CA CSR
+child_process.execFileSync('openssl', [
+  'req',
+  '-new',
+  '-x509',
+  '-extensions', 'v3_ca',
+  '-key', configCertsCaKeyPem,
+  '-out', configCertsCaCertPem,
+  '-subj', getSubject(certsConfig),
+  '-days', '3650']);
+
+var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
 
 var certText: string = child_process.execFileSync('openssl', [
   'x509',
-  '-in', configCertsCaPem,
+  '-in', configCertsCaCertPem,
   '-text',
   '-noout']).toString();
 
 // generate json config
-var config: CaCertConfig = {
-  certificatePemFile: configCertsCaPem,
+var config: CertConfig = {
+  certificatePemFile: configCertsCaCertPem,
+  privateKeyPemFile: configCertsCaKeyPem,
   certificateMetadata: certText
 };
 

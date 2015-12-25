@@ -1,19 +1,27 @@
 'use strict';
 
-import { CaCertConfig } from './security-configs';
+import { CertConfig } from './security-configs';
 
-export interface CertBundle {
-  certificatePemFile: string;
-}
+export class CertBundle {
+  private _certificatePemFile: string;
+  private _certificateMetadata: string;
+  private _privateKeyPemFile: string;
 
-export class CaCert implements CertBundle {
-  private config: CaCertConfig;
-
-  constructor(config: CaCertConfig) {
-    this.config = config;
+  constructor(config: CertConfig) {
+    this._certificatePemFile = config.certificatePemFile;
+    this._certificateMetadata = config.certificateMetadata;
+    this._privateKeyPemFile = config.privateKeyPemFile;
   }
 
-  get certificatePemFile(): string {
-    return this.config.certificatePemFile;
+  public get certificateMetadata(): string {
+    return this._certificateMetadata;
+  }
+
+  public get certificatePemFile() : string {
+    return this._certificatePemFile;
+  }
+
+  protected get privateKeyPemFile(): string {
+    return this._privateKeyPemFile;
   }
 }
