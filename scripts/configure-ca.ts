@@ -8,44 +8,32 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as commander from 'commander';
 
+import {CertSubjectConfig} from '../lib/models/cert';
 import {CertConfig} from '../lib/models/security-configs';
-import {CertsConfig} from './interfaces';
-import {createPrivateKeyFile} from '../lib/certs/utils';
+import {createPrivateKeyFile, getSubject} from '../lib/certs/utils';
 
-var certsConfig: CertsConfig = require('../config/certs-config.json');
+var certsSubjectConfig: CertSubjectConfig = require('../config/certs-config.json');
 
-function getSubject(config: CertsConfig) {
+function configureSubject(config: CertSubjectConfig) {
   if (!config) {
     throw 'No configuraiton'
   }
-  var subj: string = '';
   if (!config.country) {
     throw 'Country code required for cert subject'
   }
-  subj += '/C=' + config.country;
   if (!config.stateOrProviceName) {
     throw 'State or province name required for cert subject';
   }
-  subj += '/ST=' + config.stateOrProviceName;
   if (!config.localityName) {
     throw 'Locality name required for cert subject';
   }
-  subj += '/L=' + config.localityName;
   if (!config.organizationName) {
     throw 'Organization name required for cert subject';
-  }
-  subj += '/O=' + config.organizationName;
-  if (config.organizationUnitName) {
-    subj += '/OU=' + config.organizationUnitName;
   }
   if (!config.commonName) {
     throw 'Common name required for cert subject';
   }
-  subj += '/CN=' + config.commonName;
-  if (config.emailAddress) {
-    subj += '/emailAddress=' + config.emailAddress;
-  }
-  return subj;
+  return getSubject(config);
 }
 
 var configCertsCaDir: string = path.join(__dirname, '../config/certs/ca');
@@ -65,7 +53,7 @@ createPrivateKeyFile(configCertsCaKeyPem)
     '-extensions', 'v3_ca',
     '-key', configCertsCaKeyPem,
     '-out', configCertsCaCertPem,
-    '-subj', getSubject(certsConfig),
+    '-subj', configureSubject(certsSubjectConfig),
     '-days', '3650']);
 
   var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');

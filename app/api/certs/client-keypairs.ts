@@ -9,17 +9,20 @@ import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {CreateClientKeypairRequest, CreateClientKeypairResult} from '../../../lib/models/contracts/certs';
+import {CertSubjectConfig, CertSubject} from '../../../lib/models/cert';
 import {BadRequestError} from '../../../lib/models/errors';
 import * as CertsCa from '../../../lib/certs/ca';
+import {certsManager} from '../../../lib/certs/certs-manager';
 import * as CertsUtils from '../../../lib/certs/utils';
+
+const certsSubjectConfig: CertSubjectConfig = require('../../../config/certs-config.json');
 
 class CreateClientKeypairEnactor extends ActionEnactor<CreateClientKeypairRequest, CreateClientKeypairResult>{
   enactAsync(req: CreateClientKeypairRequest): Q.Promise<CreateClientKeypairResult> {
     // create private key
     var privateKeyPemContent: string = null;
-    return CertsUtils.createPrivateKey().then((privateKey: string) => {
-      privateKeyPemContent = privateKey;
-    }).then(() => {
+    return certsManager.createClientKeypair()
+      .then(() => {
       return <CreateClientKeypairResult> {
         publicKeyPemContent: '',
         privateKeyPemContent: privateKeyPemContent,
