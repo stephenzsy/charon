@@ -16,7 +16,7 @@ import {BadRequestError} from '../../../lib/models/errors';
 
 var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
 
-class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
+export class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
   enactAsync(req: GetTokenRequest): Q.Promise<GetTokenResult> {
     var deferred: Q.Deferred<string> = Q.defer<string>();
     jwt.sign(

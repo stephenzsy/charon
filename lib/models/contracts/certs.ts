@@ -1,17 +1,14 @@
 
 export interface GetCaRequest {
-  format: string;
 }
 
 export interface GetCaResult {
   rawCertificateMetadata: string;
-  /**
-   * pem path
-   */
-  _certificatePemPath?: string;
+  certificatePemContent: string;
 }
 
 export interface CreateClientKeypairRequest {
+  emailAddress: string;
 }
 
 export interface CreateClientKeypairResult {

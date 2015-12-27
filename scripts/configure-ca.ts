@@ -10,6 +10,7 @@ import * as commander from 'commander';
 
 import {CertConfig} from '../lib/models/security-configs';
 import {CertsConfig} from './interfaces';
+import {createPrivateKeyFile} from '../lib/certs/utils';
 
 var certsConfig: CertsConfig = require('../config/certs-config.json');
 
@@ -54,36 +55,34 @@ var configCertsCaCertPem: string = path.join(configCertsCaDir, 'ca-crt.pem');
 fsExtra.mkdirpSync(configCertsCaDir);
 
 // create CA private key
-child_process.execFileSync('openssl', [
-  'ecparam',
-  '-out', configCertsCaKeyPem,
-  '-name', 'secp384r1',
-  '-genkey']);
+createPrivateKeyFile(configCertsCaKeyPem)
+  .then(() => {
+  // create CA CSR
+  child_process.execFileSync('openssl', [
+    'req',
+    '-new',
+    '-x509',
+    '-extensions', 'v3_ca',
+    '-key', configCertsCaKeyPem,
+    '-out', configCertsCaCertPem,
+    '-subj', getSubject(certsConfig),
+    '-days', '3650']);
 
-// create CA CSR
-child_process.execFileSync('openssl', [
-  'req',
-  '-new',
-  '-x509',
-  '-extensions', 'v3_ca',
-  '-key', configCertsCaKeyPem,
-  '-out', configCertsCaCertPem,
-  '-subj', getSubject(certsConfig),
-  '-days', '3650']);
+  var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
 
-var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
+  var certText: string = child_process.execFileSync('openssl', [
+    'x509',
+    '-in', configCertsCaCertPem,
+    '-text',
+    '-noout']).toString();
 
-var certText: string = child_process.execFileSync('openssl', [
-  'x509',
-  '-in', configCertsCaCertPem,
-  '-text',
-  '-noout']).toString();
+  // generate json config
+  var config: CertConfig = {
+    certificatePemContent: fs.readFileSync(configCertsCaCertPem).toString(),
+    certificatePemFile: configCertsCaCertPem,
+    privateKeyPemFile: configCertsCaKeyPem,
+    certificateMetadata: certText
+  };
 
-// generate json config
-var config: CertConfig = {
-  certificatePemFile: configCertsCaCertPem,
-  privateKeyPemFile: configCertsCaKeyPem,
-  certificateMetadata: certText
-};
-
-fsExtra.writeJsonSync(configCertsCaConfigJson, config);
+  fsExtra.writeJsonSync(configCertsCaConfigJson, config);
+});
