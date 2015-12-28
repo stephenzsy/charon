@@ -1,7 +1,7 @@
 export interface CertConfig {
-  certificatePemFile: string;
   certificatePemContent: string;
   certificateMetadata: string;
+  certificatePemFile: string;
   privateKeyPemFile: string;
 }
 

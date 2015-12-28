@@ -1,6 +1,6 @@
 'use strict';
 
-import { CertConfig } from './security-configs';
+import { CertConfig } from './app-configs';
 
 export interface CertSubjectConfig {
   country: string;

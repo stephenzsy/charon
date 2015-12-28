@@ -31,6 +31,8 @@ export class CertsManager {
     var clientPrivateKeyPath: string;
     var clientCsrPath: string;
     var clientCrtPath: string;
+    var clientP12Path: string;
+    var exportPassword: string;
 
     return this.acquireNewSerial()
       .then((s: number) => {
@@ -49,6 +51,7 @@ export class CertsManager {
       return Utils.createCsr(clientPrivateKeyPath, subject, clientCsrPath);
     })
       .then(() => {
+      // sign certificate
       clientCrtPath = path.join(clientKeypairDir, 'client.crt');
       return Utils.signClientCertificate(
         path.join(this.caCertsDir, 'ca.key'),
@@ -56,6 +59,20 @@ export class CertsManager {
         serial,
         clientCsrPath,
         clientCrtPath);
+    })
+      .then(() => {
+      // create exportable p12 file
+      return Utils.createBase36Password(16);
+    }).then((password: string) => {
+      exportPassword = password;
+      clientP12Path = path.join(clientKeypairDir, 'client.p12');
+      console.log(exportPassword);
+      return Utils.exportPkcs12(
+        clientCrtPath,
+        clientPrivateKeyPath,
+        path.join(this.caCertsDir, 'ca.crt'),
+        exportPassword,
+        clientP12Path)
     })
       .then(() => {
       return null;

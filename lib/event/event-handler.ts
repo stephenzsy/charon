@@ -6,7 +6,7 @@ import * as UUID from 'node-uuid';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
-import {AuthTokenConfig, TokenContext} from '../models/security-configs';
+import {AuthTokenConfig, TokenContext} from '../models/app-configs';
 import {AuthorizationError, UserError} from '../models/errors';
 import {TokenScope} from '../models/contracts/common';
 import {ErrorCodes} from '../models/contracts/errors';

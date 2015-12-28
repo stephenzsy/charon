@@ -9,7 +9,7 @@ import * as fsExtra from 'fs-extra';
 import * as commander from 'commander';
 
 import {CertSubjectConfig} from '../lib/models/cert';
-import {CertConfig} from '../lib/models/security-configs';
+import {CertConfig} from '../lib/models/app-configs';
 import {createPrivateKey, getSubject} from '../lib/certs/utils';
 
 var certsSubjectConfig: CertSubjectConfig = require('../config/certs-config.json');

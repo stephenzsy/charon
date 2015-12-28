@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import * as command from 'commander';
 
-import {AuthTokenConfig} from '../lib/models/security-configs';
+import {AuthTokenConfig} from '../lib/models/app-configs';
 
 var configDir: string = path.join(__dirname, '../config');
 var configTokenCertsDir: string = path.join(configDir, 'certs', 'auth');

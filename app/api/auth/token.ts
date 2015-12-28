@@ -9,7 +9,7 @@ import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {AuthTokenConfig, TokenContext} from '../../../lib/models/security-configs';
+import {AuthTokenConfig, TokenContext} from '../../../lib/models/app-configs';
 import {TokenScope} from '../../../lib/models/contracts/common';
 import {GetTokenRequest, GetTokenResult} from '../../../lib/models/contracts/auth';
 import {BadRequestError} from '../../../lib/models/errors';

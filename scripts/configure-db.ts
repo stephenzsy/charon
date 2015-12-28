@@ -34,6 +34,7 @@ resetDatabase()
   return Q.ninvoke(connection, 'query', 'CREATE TABLE ' + certsDBTableName + ' ('
     + 'serial INTEGER NOT NULL AUTO_INCREMENT,'
     + 'state varchar(64) NOT NULL,'
+    + 'revoked BOOLEAN DEFAULT false,'
     + 'PRIMARY KEY(serial)' + ')')
 }).done(() => {
   connection.end();
