@@ -21,7 +21,9 @@ class CreateClientKeypairEnactor extends ActionEnactor<CreateClientKeypairReques
   enactAsync(req: CreateClientKeypairRequest): Q.Promise<CreateClientKeypairResult> {
     // create private key
     var privateKeyPemContent: string = null;
-    return certsManager.createClientKeypair()
+    var certSubject: CertSubject = new CertSubject(certsSubjectConfig);
+    certSubject.commonName = certSubject.emailAddress = req.emailAddress;
+    return certsManager.createClientKeypair(CertsUtils.getSubject(certSubject))
       .then(() => {
       return <CreateClientKeypairResult> {
         publicKeyPemContent: '',
