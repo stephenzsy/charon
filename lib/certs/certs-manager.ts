@@ -1,3 +1,5 @@
+///<reference path="../../typings/mysql/mysql.d.ts"/>
+
 import * as fs from 'fs';
 import * as path from 'path';
 

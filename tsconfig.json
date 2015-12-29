@@ -5,6 +5,7 @@
   },
   "exclude": [
     "node_modules",
-    "app/frontend"
+    "app/frontend",
+    "scripts"
   ]
 }

@@ -1,4 +1,4 @@
-/// <reference path="../../../lib/typings/jsonwebtoken.d.ts"/>
+/// <reference path="../../../typings/jsonwebtoken/jsonwebtoken.d.ts"/>
 
 'use strict';
 
@@ -8,7 +8,7 @@ import * as express from 'express';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
-import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
+import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {AuthTokenConfig, TokenContext} from '../../../lib/models/app-configs';
 import {TokenScope} from '../../../lib/models/contracts/common';
 import {GetTokenRequest, GetTokenResult} from '../../../lib/models/contracts/auth';
@@ -16,24 +16,19 @@ import {BadRequestError} from '../../../lib/models/errors';
 
 var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
 
-export class GetTokenEnactor extends ActionEnactor<GetTokenRequest, GetTokenResult>{
-  enactAsync(req: GetTokenRequest): Q.Promise<GetTokenResult> {
-    var deferred: Q.Deferred<string> = Q.defer<string>();
-    jwt.sign(
+export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetTokenResult>{
+  enactSync(req: GetTokenRequest): GetTokenResult {
+    var token = jwt.sign(
       <TokenContext>{ scope: req.scope },
       tokenConfig.privateKey, {
         algorithm: tokenConfig.algorithm,
         expiresIn: '1h'
-      }, (token: string) => {
-        deferred.resolve(token);
       });
-    return deferred.promise.then((token: string): GetTokenResult => {
-      return {
-        scope: req.scope,
-        token: token,
-        expiry: Date.now() + 30 * 60 * 1000
-      };
-    })
+    return {
+      scope: req.scope,
+      token: token,
+      expiry: Date.now() + 30 * 60 * 1000
+    };
   }
 }
 

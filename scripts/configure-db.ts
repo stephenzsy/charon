@@ -1,7 +1,12 @@
 ///<reference path="../typings/mysql/mysql.d.ts"/>
+///<reference path="../typings/sequelize/sequelize.d.ts"/>
 
+'use strict';
+
+import * as sequelize from 'sequelize';
 import * as Q from 'q';
 import * as mysql from 'mysql';
+import {DataAccessUser} from '../lib/db/users';
 
 const charonDBName: string = 'charon';
 const certsDBTableName: string = 'certs';
@@ -38,4 +43,9 @@ resetDatabase()
     + 'PRIMARY KEY(serial)' + ')')
 }).done(() => {
   connection.end();
-})
+});
+
+var sqlize: sequelize.Sequelize = new sequelize('charon', 'root');
+new DataAccessUser(sqlize).model.sync({ force: true }).then((result) => {
+  console.log(result);
+});
