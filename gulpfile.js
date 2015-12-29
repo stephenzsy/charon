@@ -22,6 +22,7 @@ gulp.task('tsc', function() {
       'app/api/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
+      'scripts/**/*.ts',
     ], {
       base: './'
     })
@@ -35,18 +36,4 @@ gulp.task('tsc', function() {
     .pipe(gulp.dest('.'));
 });
 
-gulp.task('tsc-scripts', ['tsc'], function() {
-  var tsProject = ts.createProject(path.resolve(__dirname, 'scripts/tsconfig.json'));
-  return gulp.src([
-      'scripts/**/*.ts',
-    ], {
-      base: './'
-    })
-    .pipe(ts(tsProject))
-    .pipe(rename(function(path) {
-      path.extname = '.js';
-    }))
-    .pipe(gulp.dest('.'));
-});
-
-gulp.task('default', ['tsc', 'tsc-scripts']);
+gulp.task('default', ['tsc']);

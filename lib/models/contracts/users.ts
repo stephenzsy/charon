@@ -1,3 +1,10 @@
+export interface User {
+  id?: string;
+  name?: string;
+  emailAddress?: string;
+  createdAt?: Date;
+}
+
 export interface CreateUserRequest {
   emailAddress: string;
   name: string;

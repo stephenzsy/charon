@@ -1,10 +1,10 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
-import * as sequelize from 'sequelize';
+import {UserModel} from '../db/index';
+import {User} from './contracts/users';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: Date;
+export class Users {
+  static create(userContext: User): Q.Promise<User> {
+    return Q(UserModel.create(userContext));
+  }
 }
