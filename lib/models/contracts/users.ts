@@ -1,15 +1,18 @@
-export interface User {
-  id?: string;
-  name?: string;
-  emailAddress?: string;
-  createdAt?: Date;
-}
-
-export interface CreateUserRequest {
-  emailAddress: string;
+export interface UserContext {
   name: string;
+  email: string;
 }
 
-export interface CreateUserResult {
-  id: string;
+export interface UserMetadata {
+  uid: string;
+  createdAt: Date;
+}
+
+export interface User extends UserContext, UserMetadata {
+}
+
+export interface CreateUserRequest extends UserContext {
+}
+
+export interface CreateUserResult extends UserMetadata {
 }

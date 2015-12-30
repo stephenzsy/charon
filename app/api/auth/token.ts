@@ -33,7 +33,7 @@ export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetToken
 }
 
 export module Handlers {
-  export var getTokenHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetTokenRequest, GetTokenResult>({
+  export const getTokenHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetTokenRequest, GetTokenResult>({
     requestDeserializer: (req: express.Request): GetTokenRequest=> {
       let scope: string = TokenScope.Public;
       if (req.query && req.query['scope']) {

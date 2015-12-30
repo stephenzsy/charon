@@ -162,6 +162,7 @@ class RequestModelHandler<TInput, TOutput> implements EventHandler {
       if (err instanceof UserError) {
         event.expressRes.status(400).send(err.jsonObj);
       } else {
+        console.error(err);
         event.expressRes.sendStatus(500);
       }
     } else if (event.action.out) {

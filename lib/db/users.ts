@@ -1,47 +1,40 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
-import * as sequelize from 'sequelize';
+import * as Sequelize from 'sequelize';
 import {User} from '../models/contracts/users';
 
-export interface UserInstance extends sequelize.Instance<UserInstance, User>, User { }
+export interface UserInstance extends Sequelize.Instance<UserInstance, User>, User { }
 
 export class DataAccessUser {
-  private _model: sequelize.Model<UserInstance, User>;
+  private _model: Sequelize.Model<UserInstance, User>;
 
-  constructor(sqlize: sequelize.Sequelize) {
-    this._model = <sequelize.Model<UserInstance, User>>sqlize.define('user', {
-      'id': <sequelize.DefineAttributeColumnOptions>{
-        type: sequelize.INTEGER,
+  constructor(sqlize: Sequelize.Sequelize) {
+    this._model = <Sequelize.Model<UserInstance, User>>sqlize.define('user', {
+      'id': <Sequelize.DefineAttributeColumnOptions>{
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true,
-        get: function(): string {
-          var _this: UserInstance = this;
-          return _this.getDataValue('uid');
-        },
-        set: function(val: string) {
-          var _this: UserInstance = this;
-          return _this.setDataValue('uid', val);
-        }
+        autoIncrement: true
       },
       'uid': {
-        type: sequelize.UUID,
+        type: Sequelize.UUID,
         unique: true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.UUIDV4
       },
       'email': {
-        type: sequelize.STRING(256),
+        type: Sequelize.STRING(256),
         unique: true,
         allowNull: false
       },
       'name': {
-        type: sequelize.STRING(256),
+        type: Sequelize.STRING(256),
         allowNull: false
       }
     }, {
       });
   }
 
-  get model(): sequelize.Model<UserInstance, User> {
+  get model(): Sequelize.Model<UserInstance, User> {
     return this._model;
   }
 }

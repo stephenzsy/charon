@@ -1,9 +1,11 @@
-///<reference path="./init.d.ts"/>
+/// <reference path="../../typings/sequelize/sequelize.d.ts"/>
 
 import * as Sequelize from 'sequelize';
+var _Sequelize = require('sequelize');
 
 import * as UserModels from './users';
 import {User} from '../models/contracts/users';
-import * as dbInit from './init';
 
-export const UserModel: Sequelize.Model<UserModels.UserInstance, User> = new UserModels.DataAccessUser(dbInit.charonSequelize).model;
+const charonSequelize: Sequelize.Sequelize = new _Sequelize('charon', 'root');
+
+export const UserModel: Sequelize.Model<UserModels.UserInstance, User> = new UserModels.DataAccessUser(charonSequelize).model;

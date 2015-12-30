@@ -28,7 +28,7 @@ gulp.task('tsc', function() {
     })
     .pipe(ts(tsProject))
     .pipe(babel({
-      "presets": "es2015"
+      "presets": ["es2015"]
     }))
     .pipe(rename(function(path) {
       path.extname = '.js';

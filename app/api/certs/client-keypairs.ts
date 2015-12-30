@@ -34,7 +34,7 @@ class CreateClientKeypairEnactor extends ActionEnactor<CreateClientKeypairReques
 }
 
 export module Handlers {
-  export var createClientKeypairHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateClientKeypairRequest, CreateClientKeypairResult>({
+  export const createClientKeypairHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateClientKeypairRequest, CreateClientKeypairResult>({
     requireAdminAuthoriztaion: true,
     requestDeserializer: (req: express.Request): CreateClientKeypairRequest=> {
       var emailAddress: string = req.body['emailAddress'];

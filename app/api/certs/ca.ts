@@ -20,7 +20,7 @@ class GetCaEnactor extends SyncActionEnactor<GetCaRequest, GetCaResult>{
 }
 
 export module Handlers {
-  export var getCaHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetCaRequest, GetCaResult>({
+  export const getCaHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetCaRequest, GetCaResult>({
     requestDeserializer: (req: express.Request): GetCaRequest=> {
       return null;
     },
