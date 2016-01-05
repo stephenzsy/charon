@@ -22,4 +22,13 @@ export class User {
       };
     });
   }
+
+  static findAndCountAll(opt: {
+    limit: number
+  }): Q.Promise<User[]> {
+    return _Q(UserModel.findAndCountAll({
+      limit: opt.limit
+    })).then((result: { rows: UserInternal[], count: number }) => {
+    })
+  }
 }

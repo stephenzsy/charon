@@ -19,7 +19,9 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
 }
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
-
+  enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
+    return User.findAll(req);
+  }
 }
 
 export module Handlers {
