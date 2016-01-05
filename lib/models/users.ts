@@ -4,10 +4,22 @@ import * as Q from 'q';
 var _Q = require('q');
 
 import {UserModel} from '../db/index';
-import {User as IUser, UserContext as IUserContext} from './contracts/users';
+import {User as IUser, UserContext} from '../../models/users';
+import {UserInternal} from '../db//users';
 
 export class User {
-  static create(userContext: IUserContext): Q.Promise<IUser> {
-    return _Q(UserModel.create(<IUser>userContext));
+  static create(userContext: UserContext): Q.Promise<IUser> {
+    return _Q(UserModel.create({
+      name: userContext.name,
+      email: userContext.email
+    }))
+      .then((userInternal: UserInternal): IUser => {
+      return {
+        id: userInternal.uid,
+        name: userInternal.name,
+        email: userInternal.email,
+        createdAt: userInternal.createdAt
+      };
+    });
   }
 }

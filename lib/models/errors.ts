@@ -1,4 +1,4 @@
-import * as Contracts from './contracts/errors';
+import * as Contracts from '../../models/errors';
 
 // Errors
 abstract class BaseError {

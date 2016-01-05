@@ -5,6 +5,7 @@ app/frontend/contracts
 lib/**/*.js
 routes/**/*.js
 scripts/**/*.js
+models/**/*.js'
 **/*.js.map
 /typings
 public/javascripts/app/**/*.js

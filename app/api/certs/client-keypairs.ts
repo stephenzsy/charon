@@ -8,7 +8,7 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateClientKeypairRequest, CreateClientKeypairResult} from '../../../lib/models/contracts/certs';
+import {CreateClientKeypairRequest, CreateClientKeypairResult} from '../../../models/certs';
 import {CertSubjectConfig, CertSubject} from '../../../lib/models/cert';
 import {BadRequestError} from '../../../lib/models/errors';
 import * as CertsCa from '../../../lib/certs/ca';

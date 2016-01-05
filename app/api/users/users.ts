@@ -8,7 +8,7 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateUserRequest, CreateUserResult} from '../../../lib/models/contracts/users';
+import {CreateUserRequest, CreateUserResult, ListUsersRequest, ListUsersResult} from '../../../models/users';
 import {User} from '../../../lib/models/users';
 import {BadRequestError} from '../../../lib/models/errors';
 
@@ -16,6 +16,10 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
   enactAsync(req: CreateUserRequest): Q.Promise<CreateUserResult> {
     return User.create(req);
   }
+}
+
+class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
+
 }
 
 export module Handlers {

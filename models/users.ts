@@ -4,7 +4,7 @@ export interface UserContext {
 }
 
 export interface UserMetadata {
-  uid: string;
+  id: string;
   createdAt: Date;
 }
 
@@ -15,4 +15,12 @@ export interface CreateUserRequest extends UserContext {
 }
 
 export interface CreateUserResult extends UserMetadata {
+}
+
+export interface ListUsersRequest {
+
+}
+
+export interface ListusersResult {
+  
 }

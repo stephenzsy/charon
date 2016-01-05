@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as express from 'express';
 
 import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {GetCaRequest, GetCaResult, CertFormat} from '../../../lib/models/contracts/certs';
+import {GetCaRequest, GetCaResult, CertFormat} from '../../../models/certs';
 import * as CertsCa from '../../../lib/certs/ca';
 
 class GetCaEnactor extends SyncActionEnactor<GetCaRequest, GetCaResult>{

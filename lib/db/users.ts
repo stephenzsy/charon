@@ -1,15 +1,22 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
 import * as Sequelize from 'sequelize';
-import {User} from '../models/contracts/users';
 
-export interface UserInstance extends Sequelize.Instance<UserInstance, User>, User { }
+export interface UserInternal {
+  id?: number;
+  uid?: string;
+  email?: string;
+  name?: string;
+  createdAt?: Date;
+}
+
+export interface UserInstance extends Sequelize.Instance<UserInstance, UserInternal>, UserInternal { }
 
 export class DataAccessUser {
-  private _model: Sequelize.Model<UserInstance, User>;
+  private _model: Sequelize.Model<UserInstance, UserInternal>;
 
   constructor(sqlize: Sequelize.Sequelize) {
-    this._model = <Sequelize.Model<UserInstance, User>>sqlize.define('user', {
+    this._model = <Sequelize.Model<UserInstance, UserInternal>>sqlize.define('user', {
       'id': <Sequelize.DefineAttributeColumnOptions>{
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -34,7 +41,7 @@ export class DataAccessUser {
       });
   }
 
-  get model(): Sequelize.Model<UserInstance, User> {
+  get model(): Sequelize.Model<UserInstance, UserInternal> {
     return this._model;
   }
 }

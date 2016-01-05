@@ -9,6 +9,7 @@ var path = require('path');
 gulp.task('clean', function() {
   return del([
     '**/*.js.map',
+    'models/**/*.js',
     'app/api/**/*.js',
     'lib/**/*.js',
     'routes/**/*.js',
@@ -19,6 +20,7 @@ gulp.task('clean', function() {
 gulp.task('tsc', function() {
   var tsProject = ts.createProject(__dirname + '/tsconfig.json');
   return gulp.src([
+      'models/**/*.ts',
       'app/api/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
