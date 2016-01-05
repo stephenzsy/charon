@@ -1,3 +1,5 @@
+import {CollectionRequest, CollectionResult} from './common';
+
 export interface UserContext {
   name: string;
   email: string;
@@ -8,19 +10,12 @@ export interface UserMetadata {
   createdAt: Date;
 }
 
-export interface User extends UserContext, UserMetadata {
-}
+export interface User extends UserContext, UserMetadata { }
 
-export interface CreateUserRequest extends UserContext {
-}
+export interface CreateUserRequest extends UserContext { }
 
-export interface CreateUserResult extends UserMetadata {
-}
+export interface CreateUserResult extends UserMetadata { }
 
-export interface ListUsersRequest {
+export interface ListUsersRequest extends CollectionRequest<number> { }
 
-}
-
-export interface ListusersResult {
-  
-}
+export interface ListUsersResult extends CollectionResult<User, Number> { }
