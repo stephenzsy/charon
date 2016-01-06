@@ -4,12 +4,12 @@ export module TokenScope {
 }
 
 export interface CollectionRequest<TMarker> {
-  limit?: number;
+  limit: number;
   marker?: TMarker;
 }
 
 export interface CollectionResult<T, TMarker> {
   count: number;
   items: T[];
-  lastMarker: TMarker;
+  lastMarker?: TMarker;
 }

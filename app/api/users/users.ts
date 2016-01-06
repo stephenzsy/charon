@@ -11,6 +11,7 @@ import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/eve
 import {CreateUserRequest, CreateUserResult, ListUsersRequest, ListUsersResult} from '../../../models/users';
 import {User} from '../../../lib/models/users';
 import {BadRequestError} from '../../../lib/models/errors';
+import {RequestValidations} from '../../../lib/validations';
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
   enactAsync(req: CreateUserRequest): Q.Promise<CreateUserResult> {
@@ -20,7 +21,7 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
   enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
-    return User.findAll(req);
+    return User.findAndCountAll({ limit: req.limit });
   }
 }
 
@@ -28,19 +29,12 @@ export module Handlers {
   export const createUserHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateUserRequest, CreateUserResult>({
     requireAdminAuthoriztaion: true,
     requestDeserializer: (req: express.Request): CreateUserRequest => {
-
       var email: string = req.body['email'];
-      if (!validator.isLength(email, 1, 256)) {
-        throw new BadRequestError('Email must be between 1 and 256 characters');
-      }
-      if (!validator.isEmail(email)) {
-        throw new BadRequestError('A valid email address is required to create a client key pair.');
-      }
+      RequestValidations.validateIsLength(email, 'email', 1, 256);
+      RequestValidations.validateIsEmail(email, 'email');
 
       var name: string = req.body['name'];
-      if (!validator.isLength(name, 1, 256)) {
-        throw new BadRequestError('Name must be between 1 and 256 characters');
-      }
+      RequestValidations.validateIsLength(name, 'name', 1, 256);
       if (!validator.isAlphanumeric(name)) {
         throw new BadRequestError('Name must be alpha numeric');
       }
@@ -50,5 +44,17 @@ export module Handlers {
       };
     },
     enactor: new CreateUserEnactor()
+  });
+
+  export const listUsersHandler: express.RequestHandler = HandlerUtils.newRequestHandler<ListUsersRequest, ListUsersResult>({
+    requireAdminAuthoriztaion: true,
+    requestDeserializer: (req: express.Request): ListUsersRequest => {
+      var _limit: string = req.query['limit'];
+      var limit: number = RequestValidations.validateIsIntWithDefault(_limit, 'limit', 1, 500, 10);
+      return {
+        limit: limit
+      };
+    },
+    enactor: new ListUsersEnactor()
   });
 }
