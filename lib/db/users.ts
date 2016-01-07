@@ -8,6 +8,13 @@ export interface UserInternal {
   email?: string;
   name?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  state?: string;
+}
+
+export module UserState {
+  export const Active: string = 'ACTIVE';
+  export const Deleted: string = 'DELETED';
 }
 
 export interface UserInstance extends Sequelize.Instance<UserInstance, UserInternal>, UserInternal { }
@@ -35,6 +42,12 @@ export class DataAccessUser {
       },
       'name': {
         type: Sequelize.STRING(256),
+        allowNull: false
+      },
+      'state': {
+        type: Sequelize.ENUM,
+        values: [UserState.Active, UserState.Deleted],
+        defaultValue: UserState.Active,
         allowNull: false
       }
     }, {

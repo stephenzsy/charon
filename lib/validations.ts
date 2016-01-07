@@ -29,4 +29,10 @@ export module RequestValidations {
     }
     return value;
   }
+
+  export function validateUUID(input: string, fieldName: string) {
+    if (!validator.isUUID(input)) {
+      throw new BadRequestError('Input parameter "' + fieldName + '" must be a valid UUID.');
+    }
+  }
 }

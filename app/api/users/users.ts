@@ -8,10 +8,16 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateUserRequest, CreateUserResult, ListUsersRequest, ListUsersResult} from '../../../models/users';
+import {CreateUserRequest, CreateUserResult, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {User} from '../../../lib/models/users';
 import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
+
+class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
+  enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
+    return User.findAndCountAllActive({ limit: req.limit });
+  }
+}
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
   enactAsync(req: CreateUserRequest): Q.Promise<CreateUserResult> {
@@ -19,9 +25,9 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
   }
 }
 
-class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
-  enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
-    return User.findAndCountAll({ limit: req.limit });
+class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
+  enactAsync(req: DeleteUserRequest): Q.Promise<DeleteUserResult> {
+    return User.delete(req.id);
   }
 }
 
@@ -56,5 +62,17 @@ export module Handlers {
       };
     },
     enactor: new ListUsersEnactor()
+  });
+
+  export const deleteuserHandler: express.RequestHandler = HandlerUtils.newRequestHandler<DeleteUserRequest, DeleteUserResult>({
+    requireAdminAuthoriztaion: true,
+    requestDeserializer: (req: express.Request): DeleteUserRequest => {
+      var id: string = req.params['id'];
+      RequestValidations.validateUUID(id, 'id');
+      return {
+        id: id
+      };
+    },
+    enactor: new DeleteUserEnactor()
   });
 }

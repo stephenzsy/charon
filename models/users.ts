@@ -19,3 +19,11 @@ export interface CreateUserResult extends UserMetadata { }
 export interface ListUsersRequest extends CollectionRequest<number> { }
 
 export interface ListUsersResult extends CollectionResult<User, Number> { }
+
+export interface DeleteUserRequest {
+  id: string
+}
+
+export interface DeleteUserResult {
+  deletedAt: Date;
+}

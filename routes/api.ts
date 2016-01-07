@@ -21,10 +21,13 @@ router.get('/auth/token', AuthTokenHandlers.getTokenHandler);
 // certs
 router.get('/certs/ca', CertsCaHandlers.getCaHandler);
 router.post('/certs/client-keypairs', ClientKeypairsHandlers.createClientKeypairHandler);
+
+// users
 router.get('/users', UsersHandlers.listUsersHandler);
+router.delete('/users/:id', UsersHandlers.deleteuserHandler);
 router.post('/users', UsersHandlers.createUserHandler);
 
-router.get('*', function(req, res) {
+router.all('*', function(req, res) {
   res.sendStatus(404);
 });
 
