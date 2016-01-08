@@ -13,7 +13,7 @@ export class User {
   private static internalToExternal(userInternal: UserInternal): IUser {
     return {
       id: userInternal.uid,
-      name: userInternal.name,
+      username: userInternal.username,
       email: userInternal.email,
       createdAt: userInternal.createdAt
     };
@@ -21,7 +21,7 @@ export class User {
 
   static create(userContext: UserContext): Q.Promise<IUser> {
     return _Q(UserModel.create({
-      name: userContext.name,
+      username: userContext.username,
       email: userContext.email
     }))
       .then(User.internalToExternal);

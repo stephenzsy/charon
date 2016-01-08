@@ -9,6 +9,7 @@ var _Sequelize = require('sequelize');
 import * as Q from 'q';
 import * as mysql from 'mysql';
 import {DataAccessUser} from '../lib/db/users';
+import {DataAccessPassword} from '../lib/db/passwds';
 
 const charonDBName: string = 'charon';
 const certsDBTableName: string = 'certs';
@@ -48,6 +49,14 @@ resetDatabase()
 });
 
 var charonSequelize: Sequelize.Sequelize = new _Sequelize('charon', 'root');
-new DataAccessUser(charonSequelize).model.sync({ force: true }).then((result) => {
+var userDataModel = new DataAccessUser(charonSequelize).model;
+var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel).model;
+
+userDataModel.sync({ force: true })
+  .then((result) => {
+  console.log(result);
+  return passwordDataModel.sync({ force: true });
+})
+  .then((result) => {
   console.log(result);
 });

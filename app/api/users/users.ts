@@ -39,13 +39,13 @@ export module Handlers {
       RequestValidations.validateIsLength(email, 'email', 1, 256);
       RequestValidations.validateIsEmail(email, 'email');
 
-      var name: string = req.body['name'];
-      RequestValidations.validateIsLength(name, 'name', 1, 256);
-      if (!validator.isAlphanumeric(name)) {
+      var username: string = req.body['username'];
+      RequestValidations.validateIsLength(username, 'username', 1, 256);
+      if (!validator.isAlphanumeric(username)) {
         throw new BadRequestError('Name must be alpha numeric');
       }
       return {
-        name: name,
+        username: username,
         email: email
       };
     },

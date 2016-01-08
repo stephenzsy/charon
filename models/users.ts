@@ -1,7 +1,7 @@
 import {CollectionRequest, CollectionResult} from './common';
 
 export interface UserContext {
-  name: string;
+  username: string;
   email: string;
 }
 
