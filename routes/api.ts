@@ -8,6 +8,7 @@ import {Handlers as AuthTokenHandlers} from '../app/api/auth/token';
 import {Handlers as CertsCaHandlers} from '../app/api/certs/ca';
 import {Handlers as ClientKeypairsHandlers} from '../app/api/certs/client-keypairs';
 import {Handlers as UsersHandlers} from '../app/api/users/users';
+import {Handlers as PasswordsHandlers} from '../app/api/secrets/passwords';
 
 var router: express.Router = express.Router();
 
@@ -26,6 +27,9 @@ router.post('/certs/client-keypairs', ClientKeypairsHandlers.createClientKeypair
 router.get('/users', UsersHandlers.listUsersHandler);
 router.delete('/users/:id', UsersHandlers.deleteuserHandler);
 router.post('/users', UsersHandlers.createUserHandler);
+
+// user passwords
+router.post('/users/:id/passwords', PasswordsHandlers.createUserPasswordHandler);
 
 router.all('*', function(req, res) {
   res.sendStatus(404);

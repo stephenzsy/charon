@@ -8,26 +8,54 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateUserRequest, CreateUserResult, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
-import {User} from '../../../lib/models/users';
+import {CreateUserRequest, CreateUserResult, User as IUser, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
+import {CollectionQueryResult} from '../../../lib/models/common';
+import {User} from '../../../lib/models/user';
 import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
   enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
-    return User.findAndCountAllActive({ limit: req.limit });
+    return User.findAndCountAllActive({ limit: req.limit })
+      .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
+      return {
+        count: result.count,
+        items: result.items.map((user: User): IUser => {
+          return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            createdAt: user.createdAt
+          };
+        })
+      };
+    });
   }
 }
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
   enactAsync(req: CreateUserRequest): Q.Promise<CreateUserResult> {
-    return User.create(req);
+    return User.create(req)
+      .then((user: User): CreateUserResult => {
+      return {
+        id: user.id,
+        createdAt: user.createdAt
+      };
+    });
   }
 }
 
 class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
   enactAsync(req: DeleteUserRequest): Q.Promise<DeleteUserResult> {
-    return User.delete(req.id);
+    return User.findById(req.id)
+      .then((user: User): Q.Promise<User>=> {
+      return user.delete();
+    })
+      .then((user: User): DeleteUserResult=> {
+      return {
+        deletedAt: user.updatedAt
+      }
+    });
   }
 }
 

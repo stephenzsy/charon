@@ -7,7 +7,6 @@ export module Columns {
   export const ID: string = 'id';
   export const UID: string = 'uid';
   export const USER_ID: string = 'userId';
-  export const USER_UID: string = 'userUid';
   export const PASSWORD: string = 'password';
   export const VALID_FROM: string = 'validFrom';
   export const VALID_TO: string = 'validTo';
@@ -18,7 +17,6 @@ export interface PasswordInternal {
   id?: number;
   uid?: string;
   userId?: number;
-  userUid?: string;
   password?: string;
   validFrom?: Date;
   validTo?: Date;
@@ -43,22 +41,6 @@ export class DataAccessPassword {
       allowNull: false,
       defaultValue: Sequelize.UUIDV4
     };
-    attributes[Columns.USER_ID] = {
-      type: Sequelize.INTEGER,
-      references: {
-        model: userModel,
-        key: UserColumns.ID
-      },
-      allowNull: false
-    };
-    attributes[Columns.USER_UID] = {
-      type: Sequelize.UUID,
-      references: {
-        model: userModel,
-        key: UserColumns.UID
-      },
-      allowNull: false
-    };
     attributes[Columns.PASSWORD] = {
       type: Sequelize.STRING(128),
       allowNull: false
@@ -79,6 +61,8 @@ export class DataAccessPassword {
     this._model = <Sequelize.Model<PasswordInstance, PasswordInternal>>sqlize.define('password', attributes, {
       timestamps: false
     });
+
+    userModel.hasMany(this._model, {foreignKey: Columns.USER_ID});
   }
 
   get model(): Sequelize.Model<PasswordInstance, PasswordInternal> {

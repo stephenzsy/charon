@@ -19,7 +19,7 @@
     "mysql": "^2.9.0",
     "node-uuid": "^1.4.7",
     "q": "^1.4.1",
-    "sequelize": "^3.16.0",
+    "sequelize": "^3.17.1",
     "serve-favicon": "~2.3.0",
     "validator": "^4.5.0"
   },

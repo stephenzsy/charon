@@ -45,6 +45,7 @@ export class DataAccessUser {
     };
     attributes[Columns.USERNAME] = {
       type: Sequelize.STRING(256),
+      unique: true,
       allowNull: false
     };
     attributes[Columns.EMAIL] = {
