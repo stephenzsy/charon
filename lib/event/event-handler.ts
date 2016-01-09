@@ -7,7 +7,7 @@ import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 
 import {AuthTokenConfig, TokenContext} from '../models/app-configs';
-import {AuthorizationError, UserError} from '../models/errors';
+import {AuthorizationError, UserError, ResourceNotFoundError} from '../models/errors';
 import {TokenScope} from '../../models/common';
 import {ErrorCodes} from '../../models/errors';
 
@@ -123,6 +123,8 @@ class ActionHandler<TInput, TOutput> implements EventHandler {
 }
 
 export type RequestDeserializer<TInput> = (req: express.Request) => TInput;
+export type AsyncRequestDeserializer<TInput> = (req: express.Request) => Q.Promise<TInput>;
+
 export type ResultSerializer<TOutput> = (result: TOutput, expressRes: express.Response) => void;
 export const jsonResultSerializer: ResultSerializer<any> = (result: any, expressRes: express.Response): void => {
   expressRes.status(200).send(result);
@@ -130,37 +132,44 @@ export const jsonResultSerializer: ResultSerializer<any> = (result: any, express
 
 export interface RequestEventHandlerOptions<TInput, TOutput> {
   enactor: ActionEnactor<TInput, TOutput>;
-  requestDeserializer: RequestDeserializer<TInput>;
+  asqyncRequestDeserializer?: AsyncRequestDeserializer<TInput>;
+  requestDeserializer?: RequestDeserializer<TInput>;
   resultSerializer?: ResultSerializer<TOutput>;
   skipAutorization?: boolean;
   requireAdminAuthoriztaion?: boolean;
 }
 
-class RequestModelHandler<TInput, TOutput> implements EventHandler {
-  private requestDeserializer: RequestDeserializer<TInput>;
+class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
+  private requestDeserializer: AsyncRequestDeserializer<TInput>;
   private resultSerializer: ResultSerializer<TOutput>;
 
-  constructor(requestDeserializer: RequestDeserializer<TInput>, resultSerializer: ResultSerializer<TOutput>) {
+  constructor(requestDeserializer: AsyncRequestDeserializer<TInput>, resultSerializer: ResultSerializer<TOutput>) {
     this.requestDeserializer = requestDeserializer;
     this.resultSerializer = resultSerializer;
   }
 
   before(event: Event): Q.Promise<Event> {
     event.action = {};
-    try {
-      event.action.in = this.requestDeserializer(event.expressReq);
-    } catch (err) {
-      event.action.err = err;
-      event.isTerminal = true;
-    }
-    return Q.resolve(event);
+    return this.requestDeserializer(event.expressReq)
+      .then((input: TInput): Event => {
+      event.action.in = input;
+      return event;
+    }, (err: any): Event=> {
+        event.action.err = err;
+        event.isTerminal = true;
+        return event;
+      });
   }
 
   after(event: Event): Q.Promise<Event> {
     if (event.action.err) {
       var err = event.action.err;
       if (err instanceof UserError) {
-        event.expressRes.status(400).send(err.jsonObj);
+        if (err instanceof ResourceNotFoundError) {
+          event.expressRes.status(404).send(err.jsonObj);
+        } else {
+          event.expressRes.status(400).send(err.jsonObj);
+        }
       } else {
         console.error(err);
         event.expressRes.sendStatus(500);
@@ -171,6 +180,18 @@ class RequestModelHandler<TInput, TOutput> implements EventHandler {
       event.expressRes.sendStatus(200);
     }
     return Q.resolve(event);
+  }
+}
+
+class SyncRequestModelHandler<TInput, TOutput> extends AsyncRequestModelHandler<TInput, TOutput> {
+  constructor(requestDeserializer: RequestDeserializer<TInput>, resultSerializer: ResultSerializer<TOutput>) {
+    super((req: express.Request): Q.Promise<TInput> => {
+      try {
+        return Q.resolve(requestDeserializer(req));
+      } catch (err) {
+        return Q.reject<TInput>(err);
+      }
+    }, resultSerializer);
   }
 }
 
@@ -241,7 +262,11 @@ export class HandlerUtils {
     }
 
     var serializer: ResultSerializer<TOutput> = (options.resultSerializer) ? options.resultSerializer : jsonResultSerializer;
-    handlers.push(new RequestModelHandler(options.requestDeserializer, serializer));
+    if (options.asqyncRequestDeserializer) {
+      handlers.push(new AsyncRequestModelHandler(options.asqyncRequestDeserializer, serializer));
+    } else {
+      handlers.push(new SyncRequestModelHandler(options.requestDeserializer, serializer));
+    }
 
     handlers.push(new ActionHandler(options.enactor));
 

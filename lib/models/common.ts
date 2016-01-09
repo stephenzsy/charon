@@ -5,8 +5,15 @@ export interface CollectionQueryResult<T, TMarker> {
 }
 
 export class ModelInstance<T>{
-  protected instance: T;
+  protected _instance: T;
   constructor(instance: T) {
-    this.instance = instance;
+    if (!instance) {
+      throw 'Null instance not allowed';
+    }
+    this._instance = instance;
+  }
+
+  get instance(): T {
+    return this._instance;
   }
 }

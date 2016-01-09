@@ -8,25 +8,32 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateUserPasswordRequest, CreateUserPasswordResult} from '../../../models/secrets';
+import {CreateUserPasswordRequest, CreateUserPasswordResult, UserPasswordStatus} from '../../../models/secrets';
 import {User} from '../../../lib/models/user';
 import {Password} from '../../../lib/models/password';
+import {resolveUser} from '../users/users';
 
 import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
 class CreateuserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
   enactAsync(req: CreateUserPasswordRequest): Q.Promise<CreateUserPasswordResult> {
-    return User.findById(req.userId)
+    return resolveUser(req.userId)
       .then((user: User): Q.Promise<Password> => {
-      return user.createPassword();
+      return Password.create(user);
     })
-      .then((user: Password): CreateUserPasswordResult => {
+      .then((password: Password): CreateUserPasswordResult => {
+      var timestamp: Date = new Date();
+      var status: string = UserPasswordStatus.Active;
+      if (timestamp > password.validTo) {
+        status = UserPasswordStatus.Expired;
+      } else if (!password.active) {
+        status = UserPasswordStatus.Revoked;
+      }
       return {
-        id: null,
-        validFrom: null,
-        validTo: null,
-        status: null
+        id: password.id,
+        validTo: password.validTo,
+        status: status
       };
     });
   }
@@ -36,7 +43,7 @@ export module Handlers {
   export const createUserPasswordHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateUserPasswordRequest, CreateUserPasswordResult>({
     requireAdminAuthoriztaion: true,
     requestDeserializer: (req: express.Request): CreateUserPasswordRequest => {
-      var userId: string = req.body['userId'];
+      var userId: string = req.params['userId'];
       RequestValidations.validateUUID(userId, 'userId');
 
       return {

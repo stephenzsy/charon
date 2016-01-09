@@ -13,7 +13,6 @@ export interface CreateUserPasswordResult {
    * Password ID
    */
   id: string;
-  validFrom: Date;
   validTo: Date;
   status: string;
 }

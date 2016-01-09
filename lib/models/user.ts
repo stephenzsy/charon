@@ -8,7 +8,7 @@ import {ModelInstance, CollectionQueryResult} from './common';
 
 import {UserContext} from '../../models/users';
 import {UserInternal, UserState as UserStateValues, UserInstance} from '../db/users';
-import {Password} from  './password'
+
 export enum UserState {
   Active,
   Deleted
@@ -43,10 +43,6 @@ export class User extends ModelInstance<UserInstance> {
     });
   }
 
-  createPassword(): Q.Promise<Password> {
-    return null;
-  }
-
   // static methods
   static create(userContext: UserContext): Q.Promise<User> {
     return _Q(UserModel.create({
@@ -60,7 +56,10 @@ export class User extends ModelInstance<UserInstance> {
   static findById(id: string): Q.Promise<User> {
     return _Q(UserModel.findOne({ where: { uid: id } }))
       .then((instance: UserInstance): User=> {
-      return new User(instance);
+      if (instance) {
+        return new User(instance);
+      }
+      return null;
     })
   }
 

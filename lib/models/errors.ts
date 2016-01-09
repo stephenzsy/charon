@@ -31,16 +31,16 @@ export class UserError extends BaseError {
 }
 
 export class AuthorizationError extends UserError {
-  get jsonObj(): Contracts.AuthorizationError {
-    return {
-      code: this.code,
-      message: this.message
-    }
+}
+
+export class ResourceNotFoundError extends UserError {
+  constructor(message: string) {
+    super(Contracts.ErrorCodes.ResourceNotFound, message);
   }
 }
 
 export class BadRequestError extends UserError {
   constructor(message: string) {
-    super('BadRequest', message);
+    super(Contracts.ErrorCodes.BadRequest, message);
   }
 }

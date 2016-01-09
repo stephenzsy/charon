@@ -11,7 +11,7 @@ import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/eve
 import {CreateUserRequest, CreateUserResult, User as IUser, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
 import {User} from '../../../lib/models/user';
-import {BadRequestError} from '../../../lib/models/errors';
+import {BadRequestError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
@@ -47,7 +47,7 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
 
 class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
   enactAsync(req: DeleteUserRequest): Q.Promise<DeleteUserResult> {
-    return User.findById(req.id)
+    return resolveUser(req.id)
       .then((user: User): Q.Promise<User>=> {
       return user.delete();
     })
@@ -57,6 +57,16 @@ class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResul
       }
     });
   }
+}
+
+export function resolveUser(userId: string): Q.Promise<User> {
+  return User.findById(userId)
+    .then((user: User): User=> {
+    if (!user) {
+      throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
+    }
+    return user;
+  });
 }
 
 export module Handlers {
@@ -92,7 +102,7 @@ export module Handlers {
     enactor: new ListUsersEnactor()
   });
 
-  export const deleteuserHandler: express.RequestHandler = HandlerUtils.newRequestHandler<DeleteUserRequest, DeleteUserResult>({
+  export const deleteUserHandler: express.RequestHandler = HandlerUtils.newRequestHandler<DeleteUserRequest, DeleteUserResult>({
     requireAdminAuthoriztaion: true,
     requestDeserializer: (req: express.Request): DeleteUserRequest => {
       var id: string = req.params['id'];

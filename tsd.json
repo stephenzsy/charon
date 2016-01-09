@@ -64,6 +64,12 @@
     },
     "big-integer/big-integer.d.ts": {
       "commit": "dc9dabe74a5be62613b17a3605309783a12ff28a"
+    },
+    "moment/moment.d.ts": {
+      "commit": "587f470b5e235dfed0f9d1681f6da536cfb60eec"
+    },
+    "moment/moment-node.d.ts": {
+      "commit": "587f470b5e235dfed0f9d1681f6da536cfb60eec"
     }
   }
 }

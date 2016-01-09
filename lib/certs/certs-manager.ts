@@ -7,6 +7,7 @@ import * as Q from 'q';
 import * as mysql from 'mysql';
 
 import * as Utils from './utils';
+import {createBase62Password} from '../secrets/utils';
 
 module CertState {
   export const init: string = 'INIT';
@@ -64,7 +65,7 @@ export class CertsManager {
     })
       .then(() => {
       // create exportable p12 file
-      return Utils.createBase36Password(16);
+      return createBase62Password(16);
     }).then((password: string) => {
       exportPassword = password;
       clientP12Path = path.join(clientKeypairDir, 'client.p12');

@@ -4,8 +4,6 @@
 import * as child_process from 'child_process';
 import * as Q from 'q';
 import * as path from 'path';
-import * as crypto from 'crypto';
-import * as bigInt from 'big-integer'
 
 import {CertSubjectConfig} from '../../lib/models/cert';
 
@@ -82,28 +80,4 @@ export function getSubject(config: CertSubjectConfig): string {
     subj += '/emailAddress=' + config.emailAddress.trim();
   }
   return subj;
-}
-
-const base36Encoding: string = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-export function createBase36Password(length: number, lowercase: boolean = false): Q.Promise<string> {
-  var numBytes: number = length * 2;
-  return Q.nfcall(crypto.randomBytes, numBytes).then((buf: Buffer): string => {
-    var randomBigInt: BigInteger = bigInt.zero;
-    for (let i: number = 0; i < numBytes; ++i) {
-      randomBigInt = randomBigInt.multiply(256).add(buf[i]);
-    }
-    var tBuf: Buffer = new Buffer(length);
-    for (let i: number = 0; i < length; ++i) {
-      let result = randomBigInt.divmod(36);
-      let r = result.remainder.valueOf();
-      tBuf[i] = base36Encoding.charCodeAt(r);
-      randomBigInt = result.quotient;
-    }
-    var password: string = tBuf.toString();
-    if (lowercase) {
-      password = password.toLowerCase();
-    }
-    return password;
-  });
 }

@@ -8,22 +8,25 @@ export module Columns {
   export const UID: string = 'uid';
   export const USER_ID: string = 'userId';
   export const PASSWORD: string = 'password';
-  export const VALID_FROM: string = 'validFrom';
   export const VALID_TO: string = 'validTo';
-  export const REVOKED: string = 'revoked';
+  export const ACTIVE: string = 'active';
 }
 
-export interface PasswordInternal {
+export interface PasswordContext {
+  user: UserInternal;
+  password: string;
+  validTo: Date;
+}
+
+export interface PasswordInternal extends PasswordContext {
   id?: number;
   uid?: string;
-  userId?: number;
-  password?: string;
-  validFrom?: Date;
-  validTo?: Date;
-  revoked?: boolean;
+  active?: boolean;
 }
 
-export interface PasswordInstance extends Sequelize.Instance<PasswordInstance, PasswordInternal>, PasswordInternal { }
+export interface PasswordInstance extends Sequelize.Instance<PasswordInstance, PasswordInternal>, PasswordInternal {
+  setUser(user: UserInstance): Promise<PasswordInstance>
+}
 
 export class DataAccessPassword {
   private _model: Sequelize.Model<PasswordInstance, PasswordInternal>;
@@ -45,24 +48,20 @@ export class DataAccessPassword {
       type: Sequelize.STRING(128),
       allowNull: false
     };
-    attributes[Columns.VALID_FROM] = {
-      type: Sequelize.DATE,
-      allowNull: false
-    };
     attributes[Columns.VALID_TO] = {
       type: Sequelize.DATE,
       allowNull: false
     };
-    attributes[Columns.REVOKED] = {
+    attributes[Columns.ACTIVE] = {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: true
     };
     this._model = <Sequelize.Model<PasswordInstance, PasswordInternal>>sqlize.define('password', attributes, {
       timestamps: false
     });
 
-    userModel.hasMany(this._model, {foreignKey: Columns.USER_ID});
+    this._model.belongsTo(userModel, { foreignKey: Columns.USER_ID, as: 'user' });
   }
 
   get model(): Sequelize.Model<PasswordInstance, PasswordInternal> {

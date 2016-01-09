@@ -5,13 +5,12 @@ export interface UserError {
 
 export module ErrorCodes {
   export module Authorization {
-    export var InsufficientPrivileges: string = 'InsufficientPrivileges';
-    export var InvalidToken: string = 'InvalidToken';
-    export var AuthorizationRequired: string = 'AuthorizationTokenRequired';
-    export var TokenExpired: string = 'TokenExpired';
+    export const InsufficientPrivileges: string = 'InsufficientPrivileges';
+    export const InvalidToken: string = 'InvalidToken';
+    export const AuthorizationRequired: string = 'AuthorizationTokenRequired';
+    export const TokenExpired: string = 'TokenExpired';
   }
-}
 
-export interface AuthorizationError extends UserError {
-  code: string;
+  export const BadRequest: string = 'BadRequest';
+  export const ResourceNotFound: string = 'ResourceNotFound';
 }

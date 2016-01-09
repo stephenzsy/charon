@@ -25,11 +25,11 @@ router.post('/certs/client-keypairs', ClientKeypairsHandlers.createClientKeypair
 
 // users
 router.get('/users', UsersHandlers.listUsersHandler);
-router.delete('/users/:id', UsersHandlers.deleteuserHandler);
+router.delete('/users/:id', UsersHandlers.deleteUserHandler);
 router.post('/users', UsersHandlers.createUserHandler);
 
 // user passwords
-router.post('/users/:id/passwords', PasswordsHandlers.createUserPasswordHandler);
+router.post('/users/:userId/passwords', PasswordsHandlers.createUserPasswordHandler);
 
 router.all('*', function(req, res) {
   res.sendStatus(404);

@@ -54,9 +54,7 @@ var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel).m
 
 userDataModel.sync({ force: true })
   .then((result) => {
-  console.log(result);
   return passwordDataModel.sync({ force: true });
 })
   .then((result) => {
-  console.log(result);
 });
