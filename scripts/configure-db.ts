@@ -10,6 +10,7 @@ import * as Q from 'q';
 import * as mysql from 'mysql';
 import {DataAccessUser} from '../lib/db/users';
 import {DataAccessPassword} from '../lib/db/passwds';
+import {DataAccessNetwork} from '../lib/db/networks';
 
 const charonDBName: string = 'charon';
 const certsDBTableName: string = 'certs';
@@ -50,9 +51,13 @@ resetDatabase()
 
 var charonSequelize: Sequelize.Sequelize = new _Sequelize('charon', 'root');
 var userDataModel = new DataAccessUser(charonSequelize).model;
-var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel).model;
+var networkDataModel = new DataAccessNetwork(charonSequelize).model;
+var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel, networkDataModel).model;
 
 userDataModel.sync({ force: true })
+  .then((result) => {
+  return networkDataModel.sync({ force: true });
+})
   .then((result) => {
   return passwordDataModel.sync({ force: true });
 })

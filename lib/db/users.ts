@@ -7,12 +7,6 @@ export module Columns {
   export const UID: string = 'uid';
   export const USERNAME: string = 'username';
   export const EMAIL: string = 'email';
-  export const STATE: string = 'state';
-}
-
-export module UserState {
-  export const Active: string = 'ACTIVE';
-  export const Deleted: string = 'DELETED';
 }
 
 export interface UserInternal {
@@ -27,8 +21,10 @@ export interface UserInternal {
 
 export interface UserInstance extends Sequelize.Instance<UserInstance, UserInternal>, UserInternal { }
 
+export type UserModel = Sequelize.Model<UserInstance, UserInternal>;
+
 export class DataAccessUser {
-  private _model: Sequelize.Model<UserInstance, UserInternal>;
+  private _model: UserModel;
 
   constructor(sqlize: Sequelize.Sequelize) {
     var attributes: Sequelize.DefineAttributes = {};
@@ -52,16 +48,10 @@ export class DataAccessUser {
       type: Sequelize.STRING(256),
       allowNull: false
     };
-    attributes[Columns.STATE] = {
-      type: Sequelize.ENUM,
-      values: [UserState.Active, UserState.Deleted],
-      defaultValue: UserState.Active,
-      allowNull: false
-    };
-    this._model = <Sequelize.Model<UserInstance, UserInternal>>sqlize.define('user', attributes, {});
+    this._model = <UserModel>sqlize.define('user', attributes, {});
   }
 
-  get model(): Sequelize.Model<UserInstance, UserInternal> {
+  get model(): UserModel {
     return this._model;
   }
 }

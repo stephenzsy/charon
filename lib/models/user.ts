@@ -35,12 +35,8 @@ export class User extends ModelInstance<UserInstance> {
     return this.instance.updatedAt;
   }
 
-  delete(): Q.Promise<User> {
-    this.instance.state = UserStateValues.Deleted;
-    return _Q(this.instance.save()).then((instance: UserInstance) => {
-      this.instance = instance;
-      return this;
-    });
+  delete(): Q.Promise<void> {
+    return _Q(this.instance.destroy());
   }
 
   // static methods

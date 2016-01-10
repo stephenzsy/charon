@@ -1,49 +1,48 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
 import * as Sequelize from 'sequelize';
-import {UserInstance, UserInternal, Columns as UserColumns} from './users'
+
+import {CommonDataInternal, DataAccessCommon} from './common'
+import {UserModel, UserInternal, UserInstance, Columns as UserColumns} from './users'
+import {NetworkModel, NetworkInternal, NetworkInstance, Columns as NetworkColumns} from './networks'
 
 export module Columns {
-  export const ID: string = 'id';
-  export const UID: string = 'uid';
   export const USER_ID: string = 'userId';
+  export const NETWORK_ID: string = 'networkId';
   export const PASSWORD: string = 'password';
   export const VALID_TO: string = 'validTo';
   export const ACTIVE: string = 'active';
 }
 
-export interface PasswordContext {
+export interface PasswordInternal extends CommonDataInternal {
   user: UserInternal;
+  network: NetworkInternal;
   password: string;
   validTo: Date;
 }
 
-export interface PasswordInternal extends PasswordContext {
-  id?: number;
-  uid?: string;
-  active?: boolean;
-}
-
 export interface PasswordInstance extends Sequelize.Instance<PasswordInstance, PasswordInternal>, PasswordInternal {
-  setUser(user: UserInstance): Promise<PasswordInstance>
+  setUser(user: UserInstance): Promise<PasswordInstance>;
+  setNetwork(user: NetworkInstance): Promise<PasswordInstance>;
 }
 
-export class DataAccessPassword {
-  private _model: Sequelize.Model<PasswordInstance, PasswordInternal>;
+export type PasswordModel = Sequelize.Model<PasswordInstance, PasswordInternal>
+export class DataAccessPassword extends DataAccessCommon<PasswordModel> {
 
-  constructor(sqlize: Sequelize.Sequelize, userModel: Sequelize.Model<UserInstance, UserInternal>) {
-    var attributes: Sequelize.DefineAttributes = {};
-    attributes[Columns.ID] = {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    };
-    attributes[Columns.UID] = {
-      type: Sequelize.UUID,
-      unique: true,
-      allowNull: false,
-      defaultValue: Sequelize.UUIDV4
-    };
+  private userModel: UserModel;
+  private networkModel: NetworkModel;
+
+  constructor(
+    sqlize: Sequelize.Sequelize,
+    userModel: UserModel,
+    networkModel: NetworkModel) {
+    super(sqlize);
+    this.userModel = userModel;
+    this.networkModel = networkModel;
+  }
+
+  protected createModelAttributes(): Sequelize.DefineAttributes {
+    var attributes: Sequelize.DefineAttributes = super.createModelAttributes();
     attributes[Columns.PASSWORD] = {
       type: Sequelize.STRING(128),
       allowNull: false
@@ -57,14 +56,18 @@ export class DataAccessPassword {
       allowNull: false,
       defaultValue: true
     };
-    this._model = <Sequelize.Model<PasswordInstance, PasswordInternal>>sqlize.define('password', attributes, {
-      timestamps: false
-    });
-
-    this._model.belongsTo(userModel, { foreignKey: Columns.USER_ID, as: 'user' });
+    return attributes;
   }
 
-  get model(): Sequelize.Model<PasswordInstance, PasswordInternal> {
-    return this._model;
+  protected createModel(): PasswordModel {
+    var model: PasswordModel = <PasswordModel>this.sqlize.define(
+      'password',
+      this.createModelAttributes(), {
+        timestamps: false
+      });
+
+    model.belongsTo(this.userModel, { foreignKey: Columns.USER_ID, as: 'user' });
+    model.belongsTo(this.networkModel, { foreignKey: Columns.NETWORK_ID, as: 'network' });
+    return model;
   }
 }

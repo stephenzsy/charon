@@ -6,7 +6,7 @@ const _Q = require('q');
 const _moment: moment.MomentStatic = require('moment');
 
 import {UserModel, PasswordModel} from '../db/index';
-import {PasswordContext, PasswordInternal, PasswordInstance} from '../db/passwds';
+import {PasswordInternal, PasswordInstance} from '../db/passwds';
 import {ModelInstance} from './common';
 import {User} from './user';
 import {createBase62Password} from '../secrets/utils'
@@ -36,7 +36,7 @@ export class Password extends ModelInstance<PasswordInstance> {
     return createBase62Password(16)
       .then((password: string) => {
       var validTo = _moment().add(30, 'd');
-      return PasswordModel.create(<PasswordContext>{
+      return PasswordModel.create(<PasswordInternal>{
         password: password,
         validTo: validTo.toDate()
       })
