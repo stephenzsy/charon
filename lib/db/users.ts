@@ -2,6 +2,8 @@
 
 import * as Sequelize from 'sequelize';
 
+import {CommonDataInternal} from './common'
+
 export module Columns {
   export const ID: string = 'id';
   export const UID: string = 'uid';
@@ -9,14 +11,14 @@ export module Columns {
   export const EMAIL: string = 'email';
 }
 
-export interface UserInternal {
-  id?: number;
-  uid?: string;
-  email?: string;
-  username?: string;
+export interface UserContext {
+  email: string;
+  username: string;
+}
+
+export interface UserInternal extends CommonDataInternal, UserContext {
   createdAt?: Date;
   updatedAt?: Date;
-  state?: string;
 }
 
 export interface UserInstance extends Sequelize.Instance<UserInstance, UserInternal>, UserInternal { }

@@ -1,20 +1,21 @@
 import {CollectionRequest, CollectionResult} from './common';
 
-export interface UserContext {
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: Date;
+}
+
+export interface CreateUserRequest {
   username: string;
   email: string;
 }
 
-export interface UserMetadata {
+export interface CreateUserResult {
   id: string;
   createdAt: Date;
 }
-
-export interface User extends UserContext, UserMetadata { }
-
-export interface CreateUserRequest extends UserContext { }
-
-export interface CreateUserResult extends UserMetadata { }
 
 export interface ListUsersRequest extends CollectionRequest<number> { }
 

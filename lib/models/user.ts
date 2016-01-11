@@ -6,8 +6,7 @@ var _Q = require('q');
 import {UserModel} from '../db/index';
 import {ModelInstance, CollectionQueryResult} from './common';
 
-import {UserContext} from '../../models/users';
-import {UserInternal, UserState as UserStateValues, UserInstance} from '../db/users';
+import {UserInternal, UserInstance, UserContext} from '../db/users';
 
 export enum UserState {
   Active,
@@ -15,10 +14,6 @@ export enum UserState {
 };
 
 export class User extends ModelInstance<UserInstance> {
-  get id(): string {
-    return this.instance.uid;
-  }
-
   get username(): string {
     return this.instance.username;
   }
@@ -41,10 +36,8 @@ export class User extends ModelInstance<UserInstance> {
 
   // static methods
   static create(userContext: UserContext): Q.Promise<User> {
-    return _Q(UserModel.create({
-      username: userContext.username,
-      email: userContext.email
-    })).then((instance: UserInstance): User=> {
+    return _Q(UserModel.create(<UserInternal>userContext))
+      .then((instance: UserInstance): User=> {
       return new User(instance);
     });
   }
@@ -63,7 +56,6 @@ export class User extends ModelInstance<UserInstance> {
     limit: number
   }): Q.Promise<CollectionQueryResult<User, number>> {
     return _Q(UserModel.findAndCountAll({
-      where: { state: UserStateValues.Active },
       limit: opt.limit
     }))
       .then((result: { rows: UserInstance[], count: number }): CollectionQueryResult<User, number> => {

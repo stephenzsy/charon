@@ -6,12 +6,17 @@ import {CommonDataInternal, DataAccessCommon} from './common';
 
 export module Columns {
   export const NAME: string = 'name';
+  export const CLIENT_SECRET: string = 'clientSecret';
   export const DB_NAME: string = 'dbName';
 }
 
-export interface NetworkInternal extends CommonDataInternal {
+export interface NetworkContext {
   name: string;
   dbName: string;
+  clientSecret: string;
+}
+
+export interface NetworkInternal extends CommonDataInternal, NetworkContext {
 }
 
 export interface NetworkInstance extends Sequelize.Instance<NetworkInstance, NetworkInternal>, NetworkInternal { }
@@ -27,11 +32,15 @@ export class DataAccessNetwork extends DataAccessCommon<NetworkModel> {
       allowNull: false,
       unique: true
     };
+    attributes[Columns.CLIENT_SECRET] = {
+      type: Sequelize.STRING(256),
+      allowNull: false
+    };
     attributes[Columns.DB_NAME] = {
       type: Sequelize.STRING(256),
       allowNull: false,
       unique: true
-    }
+    };
     return attributes;
   }
 

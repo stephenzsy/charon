@@ -27,8 +27,6 @@ class CreateuserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest,
       var status: string = UserPasswordStatus.Active;
       if (timestamp > password.validTo) {
         status = UserPasswordStatus.Expired;
-      } else if (!password.active) {
-        status = UserPasswordStatus.Revoked;
       }
       return {
         id: password.id,

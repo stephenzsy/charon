@@ -12,21 +12,12 @@ import {User} from './user';
 import {createBase62Password} from '../secrets/utils'
 
 export class Password extends ModelInstance<PasswordInstance> {
-
-  get id(): string {
-    return this.instance.uid;
-  }
-
   get password(): string {
     return this.instance.password;
   }
 
   get validTo(): Date {
     return this.instance.validTo;
-  }
-
-  get active(): boolean {
-    return this.instance.active;
   }
 
   static create(user: User): Q.Promise<Password> {

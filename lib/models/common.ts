@@ -1,10 +1,12 @@
+import {CommonDataInternal} from '../db/common';
+
 export interface CollectionQueryResult<T, TMarker> {
   count: number;
   items: T[];
   lastMarker?: TMarker;
 }
 
-export class ModelInstance<T>{
+export class ModelInstance<T extends CommonDataInternal>{
   protected _instance: T;
   constructor(instance: T) {
     if (!instance) {
@@ -15,5 +17,9 @@ export class ModelInstance<T>{
 
   get instance(): T {
     return this._instance;
+  }
+
+  get id(): string {
+    return this.instance.uid;
   }
 }
