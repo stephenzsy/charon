@@ -17,10 +17,10 @@ import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
 class CreateuserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
-  enactAsync(req: CreateUserPasswordRequest): Q.Promise<CreateUserPasswordResult> {
+  async enactAsync(req: CreateUserPasswordRequest): Promise<CreateUserPasswordResult> {
     return resolveUser(req.userId)
-      .then((user: User): Q.Promise<Password> => {
-      return Password.create(user);
+      .then((user: User): Promise<Password> => {
+      return Password.create(user, req.networkId);
     })
       .then((password: Password): CreateUserPasswordResult => {
       var timestamp: Date = new Date();
@@ -44,8 +44,12 @@ export module Handlers {
       var userId: string = req.params['userId'];
       RequestValidations.validateUUID(userId, 'userId');
 
+      var networkId: string = req.params['networkId'];
+      RequestValidations.validateUUID(networkId, 'networkId');
+
       return {
         userId: userId,
+        networkId: networkId
       };
     },
     enactor: new CreateuserPasswordEnactor()

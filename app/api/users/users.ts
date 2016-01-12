@@ -15,7 +15,7 @@ import {BadRequestError, ResourceNotFoundError} from '../../../lib/models/errors
 import {RequestValidations} from '../../../lib/validations';
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
-  enactAsync(req: ListUsersRequest): Q.Promise<ListUsersResult> {
+  async enactAsync(req: ListUsersRequest): Promise<ListUsersResult> {
     return User.findAndCountAllActive({ limit: req.limit })
       .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
       return {
@@ -34,7 +34,7 @@ class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> 
 }
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
-  enactAsync(req: CreateUserRequest): Q.Promise<CreateUserResult> {
+  async enactAsync(req: CreateUserRequest): Promise<CreateUserResult> {
     return User.create(req)
       .then((user: User): CreateUserResult => {
       return {
@@ -46,7 +46,7 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
 }
 
 class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
-  enactAsync(req: DeleteUserRequest): Q.Promise<DeleteUserResult> {
+  enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
     return resolveUser(req.id)
       .then((user: User): Q.Promise<void>=> {
       return user.delete();
@@ -59,7 +59,7 @@ class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResul
   }
 }
 
-export function resolveUser(userId: string): Q.Promise<User> {
+export async function resolveUser(userId: string): Promise<User> {
   return User.findById(userId)
     .then((user: User): User=> {
     if (!user) {

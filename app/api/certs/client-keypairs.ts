@@ -15,10 +15,10 @@ import * as CertsCa from '../../../lib/certs/ca';
 import {certsManager} from '../../../lib/certs/certs-manager';
 import * as CertsUtils from '../../../lib/certs/utils';
 
-const certsSubjectConfig: CertSubjectConfig = require('../../../config/certs-config.json');
+const certsSubjectConfig: CertSubjectConfig = require('../../../config/init/certs-config.json');
 
 class CreateClientKeypairEnactor extends ActionEnactor<CreateClientKeypairRequest, CreateClientKeypairResult>{
-  enactAsync(req: CreateClientKeypairRequest): Q.Promise<CreateClientKeypairResult> {
+  async enactAsync(req: CreateClientKeypairRequest): Promise<CreateClientKeypairResult> {
     // create private key
     var privateKeyPemContent: string = null;
     var certSubject: CertSubject = new CertSubject(certsSubjectConfig);

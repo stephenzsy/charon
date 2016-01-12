@@ -3,14 +3,13 @@
 
 'use strict';
 
-import * as Sequelize from 'sequelize';
-var _Sequelize = require('sequelize');
+import * as sequelize from 'sequelize';
+const Sequelize = require('sequelize');
 
 import * as Q from 'q';
 import * as mysql from 'mysql';
 import {DataAccessUser} from '../lib/db/users';
 import {DataAccessPassword} from '../lib/db/passwds';
-import {DataAccessNetwork} from '../lib/db/networks';
 
 const charonDBName: string = 'charon';
 const certsDBTableName: string = 'certs';
@@ -49,15 +48,11 @@ resetDatabase()
   connection.end();
 });
 
-var charonSequelize: Sequelize.Sequelize = new _Sequelize('charon', 'root');
+var charonSequelize: sequelize.Sequelize = new Sequelize('charon', 'root');
 var userDataModel = new DataAccessUser(charonSequelize).model;
-var networkDataModel = new DataAccessNetwork(charonSequelize).model;
-var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel, networkDataModel).model;
+var passwordDataModel = new DataAccessPassword(charonSequelize, userDataModel).model;
 
 userDataModel.sync({ force: true })
-  .then((result) => {
-  return networkDataModel.sync({ force: true });
-})
   .then((result) => {
   return passwordDataModel.sync({ force: true });
 })

@@ -1,8 +1,6 @@
 ///<reference path="../../typings/moment/moment-node.d.ts"/>
 
-import * as Q from 'q';
 import * as moment from 'moment';
-const _Q = require('q');
 const _moment: moment.MomentStatic = require('moment');
 
 import {UserModel, PasswordModel} from '../db/index';
@@ -20,22 +18,18 @@ export class Password extends ModelInstance<PasswordInstance> {
     return this.instance.validTo;
   }
 
-  static create(user: User): Q.Promise<Password> {
+  static async create(user: User, networkId: string): Promise<Password> {
     if (!user) {
-      return Q.reject<Password>('Null user provided to create password');
+      return new Promise<Password>(reject => 'Null user provided to create password');
     }
-    return createBase62Password(16)
-      .then((password: string) => {
-      var validTo = _moment().add(30, 'd');
-      return PasswordModel.create(<PasswordInternal>{
-        password: password,
-        validTo: validTo.toDate()
-      })
-        .then((instance: PasswordInstance): Q.Promise<PasswordInstance> => {
-        return _Q(instance.setUser(user.instance));
-      }).then((instance: PasswordInstance): Password => {
-        return new Password(instance);
-      });
+    var password: string = await createBase62Password(16);
+    var validTo: moment.Moment = _moment().add(30, 'd');
+    var instance: PasswordInstance = await PasswordModel.create(<PasswordInternal>{
+      password: password,
+      validTo: validTo.toDate(),
+      networkId: networkId
     });
+    await instance.setUser(user.instance);
+    return new Password(instance);
   }
 }

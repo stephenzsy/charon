@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "babel-polyfill": "^6.3.14",
     "big-integer": "^1.6.10",
     "body-parser": "^1.14.2",
     "commander": "^2.9.0",

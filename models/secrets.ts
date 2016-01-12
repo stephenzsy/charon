@@ -1,5 +1,6 @@
 export interface CreateUserPasswordRequest {
   userId: string;
+  networkId: string;
 }
 
 export module UserPasswordStatus {

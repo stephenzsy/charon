@@ -42,14 +42,12 @@ export class User extends ModelInstance<UserInstance> {
     });
   }
 
-  static findById(id: string): Q.Promise<User> {
-    return _Q(UserModel.findOne({ where: { uid: id } }))
-      .then((instance: UserInstance): User=> {
-      if (instance) {
-        return new User(instance);
-      }
-      return null;
-    })
+  static async findById(id: string): Promise<User> {
+    var instance: UserInstance = await UserModel.findOne({ where: { uid: id } });
+    if (instance) {
+      return new User(instance);
+    }
+    return null;
   }
 
   static findAndCountAllActive(opt: {

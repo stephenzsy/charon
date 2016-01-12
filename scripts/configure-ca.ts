@@ -12,7 +12,7 @@ import {CertSubjectConfig} from '../lib/models/cert';
 import {CertConfig} from '../lib/models/app-configs';
 import {createPrivateKey, getSubject} from '../lib/certs/utils';
 
-var certsSubjectConfig: CertSubjectConfig = require('../config/certs-config.json');
+var certsSubjectConfig: CertSubjectConfig = require('../config/init/certs-config.json');
 
 function configureSubject(config: CertSubjectConfig) {
   if (!config) {

@@ -2,8 +2,8 @@
 ///<reference path="../../typings/node-uuid/node-uuid.d.ts"/>
 
 import * as express from 'express';
-import * as UUID from 'node-uuid';
 import * as Q from 'q';
+import * as UUID from 'node-uuid';
 import * as jwt from 'jsonwebtoken';
 
 import {AuthTokenConfig, TokenContext} from '../models/app-configs';
@@ -33,8 +33,9 @@ interface Event {
 }
 
 interface EventHandler {
-  before(event: Event): Q.Promise<Event>;
-  after(event: Event): Q.Promise<Event>;
+  name: string;
+  before(event: Event): Promise<Event>;
+  after(event: Event): Promise<Event>;
 }
 
 interface EventHandlerContainer {
@@ -65,39 +66,30 @@ class EventHandlerChain {
     });
   }
 
-  public handle(event: Event): Q.Promise<Event> {
+  public async handle(event: Event): Promise<Event> {
     return this.handleInternal(event, this.chainHead);
   }
 
-  private handleInternal(event: Event, handlerContainer: EventHandlerContainer): Q.Promise<Event> {
+  private async handleInternal(event: Event, handlerContainer: EventHandlerContainer): Promise<Event> {
     var handler: EventHandler = handlerContainer.handler;
-    return handler.before(event).then(
-      (postBeforeEvent: Event): Event | Q.Promise<Event> => {
-        if (!postBeforeEvent.isTerminal && handlerContainer.next) {
-          return this.handleInternal(postBeforeEvent, handlerContainer.next);
-        }
-        return event;
-      }).then(
-      (postNextEvent: Event): Q.Promise<Event>=> {
-        return handler.after(postNextEvent);
-      });
+    event = await handler.before(event);
+
+    if (!event.isTerminal && handlerContainer.next) {
+      event = await this.handleInternal(event, handlerContainer.next);
+    }
+    return handler.after(event);
   }
 }
 
 export abstract class ActionEnactor<TInput, TOutput>  {
-  abstract enactAsync(input: TInput): Q.Promise<TOutput>;
+  abstract async enactAsync(input: TInput): Promise<TOutput>;
 }
 
 export abstract class SyncActionEnactor<TInput, TOutput> extends ActionEnactor<TInput, TOutput> {
   abstract enactSync(input: TInput): TOutput;
 
-  enactAsync(input: TInput): Q.Promise<TOutput> {
-    try {
-      var output: TOutput = this.enactSync(input);
-      return Q.resolve(output);
-    } catch (err) {
-      return Q.reject<TOutput>(err);
-    }
+  async enactAsync(input: TInput): Promise<TOutput> {
+    return this.enactSync(input);
   }
 }
 
@@ -107,23 +99,26 @@ class ActionHandler<TInput, TOutput> implements EventHandler {
     this.enactor = enactor;
   }
 
-  before(event: Event): Q.Promise<Event> {
-    return this.enactor.enactAsync(event.action.in).then((output: TOutput): Event => {
-      event.action.out = output;
-      return event;
-    }, (err: any): Event => {
-        event.action.err = err;
-        return event;
-      });
+  get name(): string {
+    return 'ActionHandler';
   }
 
-  after(event: Event): Q.Promise<Event> {
-    return Q.resolve(event);
+  async before(event: Event): Promise<Event> {
+    try {
+      event.action.out = await this.enactor.enactAsync(event.action.in);
+    } catch (err) {
+      event.action.err = err;
+    }
+    return event;
+  }
+
+  async after(event: Event): Promise<Event> {
+    return event;
   }
 }
 
 export type RequestDeserializer<TInput> = (req: express.Request) => TInput;
-export type AsyncRequestDeserializer<TInput> = (req: express.Request) => Q.Promise<TInput>;
+export type AsyncRequestDeserializer<TInput> = (req: express.Request) => Promise<TInput>;
 
 export type ResultSerializer<TOutput> = (result: TOutput, expressRes: express.Response) => void;
 export const jsonResultSerializer: ResultSerializer<any> = (result: any, expressRes: express.Response): void => {
@@ -132,7 +127,7 @@ export const jsonResultSerializer: ResultSerializer<any> = (result: any, express
 
 export interface RequestEventHandlerOptions<TInput, TOutput> {
   enactor: ActionEnactor<TInput, TOutput>;
-  asqyncRequestDeserializer?: AsyncRequestDeserializer<TInput>;
+  asyncRequestDeserializer?: AsyncRequestDeserializer<TInput>;
   requestDeserializer?: RequestDeserializer<TInput>;
   resultSerializer?: ResultSerializer<TOutput>;
   skipAutorization?: boolean;
@@ -148,20 +143,22 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
     this.resultSerializer = resultSerializer;
   }
 
-  before(event: Event): Q.Promise<Event> {
-    event.action = {};
-    return this.requestDeserializer(event.expressReq)
-      .then((input: TInput): Event => {
-      event.action.in = input;
-      return event;
-    }, (err: any): Event=> {
-        event.action.err = err;
-        event.isTerminal = true;
-        return event;
-      });
+  get name(): string {
+    return 'AsyncRequestModelHandler';
   }
 
-  after(event: Event): Q.Promise<Event> {
+  async before(event: Event): Promise<Event> {
+    event.action = {};
+    try {
+      event.action.in = await this.requestDeserializer(event.expressReq);
+    } catch (err) {
+      event.action.err = err;
+      event.isTerminal = true;
+    }
+    return event;
+  }
+
+  async after(event: Event): Promise<Event> {
     if (event.action.err) {
       var err = event.action.err;
       if (err instanceof UserError) {
@@ -179,19 +176,23 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
     } else {
       event.expressRes.sendStatus(200);
     }
-    return Q.resolve(event);
+    return event;
   }
 }
 
 class SyncRequestModelHandler<TInput, TOutput> extends AsyncRequestModelHandler<TInput, TOutput> {
   constructor(requestDeserializer: RequestDeserializer<TInput>, resultSerializer: ResultSerializer<TOutput>) {
-    super((req: express.Request): Q.Promise<TInput> => {
+    super((req: express.Request): Promise<TInput> => {
       try {
-        return Q.resolve(requestDeserializer(req));
+        return Promise.resolve(requestDeserializer(req));
       } catch (err) {
-        return Q.reject<TInput>(err);
+        return Promise.reject(err);
       }
     }, resultSerializer);
+  }
+
+  get name(): string {
+    return 'SyncRequestModelHandler';
   }
 }
 
@@ -204,40 +205,45 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
     this.authorizedScopes = authorizedScopes;
   }
 
-  before(event: Event): Q.Promise<Event> {
+  get name(): string {
+    return 'JsonWebTokenAuthorizationHandler';
+  }
+
+  async before(event: Event): Promise<Event> {
     event.authorization = {};
     var token: string = event.expressReq.get('x-access-token') || event.expressReq.query['token'];
     if (!token) {
       event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.AuthorizationRequired, "Authorization token is required");
       event.isTerminal = true;
-      return Q.resolve(event);
+      return event;
     }
-    return Q.nfcall(jwt.verify, token, this.authTokenConfig.publicKey).then(
-      (tokenContext: TokenContext): Event=> {
-        if (this.authorizedScopes.indexOf(tokenContext.scope) < 0) {
-          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, "Insufficient privileges");
-          event.isTerminal = true;
-        } else {
-          event.authorization.tokenContext = tokenContext;
-        }
-        return event;
-      }, (err): Event => {
-        if (err && err.name === 'TokenExpiredError') {
-          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
-        } else {
-          event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
-        }
-        event.isTerminal = true;
-        return event;
-      });
+    var tokenContext: TokenContext = null;
+    try {
+      tokenContext = await Q.nfcall<TokenContext>(jwt.verify, token, this.authTokenConfig.publicKey);
+    } catch (err) {
+      if (err && err.name === 'TokenExpiredError') {
+        event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
+      } else {
+        event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+      }
+      event.isTerminal = true;
+      return event;
+    }
+    if (this.authorizedScopes.indexOf(tokenContext.scope) < 0) {
+      event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, "Insufficient privileges");
+      event.isTerminal = true;
+    } else {
+      event.authorization.tokenContext = tokenContext;
+    }
+    return event;
   }
 
-  after(event: Event): Q.Promise<Event> {
+  async after(event: Event): Promise<Event> {
     if (event.authorization && event.authorization.err) {
       var err = event.authorization.err;
       event.expressRes.status(403).send(err.jsonObj);
     }
-    return Q.resolve(event);
+    return event;
   }
 }
 
@@ -262,8 +268,8 @@ export class HandlerUtils {
     }
 
     var serializer: ResultSerializer<TOutput> = (options.resultSerializer) ? options.resultSerializer : jsonResultSerializer;
-    if (options.asqyncRequestDeserializer) {
-      handlers.push(new AsyncRequestModelHandler(options.asqyncRequestDeserializer, serializer));
+    if (options.asyncRequestDeserializer) {
+      handlers.push(new AsyncRequestModelHandler(options.asyncRequestDeserializer, serializer));
     } else {
       handlers.push(new SyncRequestModelHandler(options.requestDeserializer, serializer));
     }
@@ -272,7 +278,7 @@ export class HandlerUtils {
 
     var handlerChain: EventHandlerChain = new EventHandlerChain(handlers);
     return function(req: express.Request, res: express.Response) {
-      handlerChain.handle(HandlerUtils.createEvent(req, res)).done();
+      handlerChain.handle(HandlerUtils.createEvent(req, res));
     };
   }
 }
