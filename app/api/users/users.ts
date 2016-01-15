@@ -11,7 +11,7 @@ import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/eve
 import {CreateUserRequest, CreateUserResult, User as IUser, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
 import {User} from '../../../lib/models/user';
-import {BadRequestError, ResourceNotFoundError} from '../../../lib/models/errors';
+import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
@@ -35,8 +35,13 @@ class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> 
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
   async enactAsync(req: CreateUserRequest): Promise<CreateUserResult> {
-    return User.create(req)
-      .then((user: User): CreateUserResult => {
+    return User.findByUserName(req.username)
+      .then((user: User): Promise<User> => {
+      if (user) {
+        throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
+      }
+      return User.create(req);
+    }).then((user: User): CreateUserResult => {
       return {
         id: user.id,
         createdAt: user.createdAt

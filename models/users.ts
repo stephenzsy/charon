@@ -28,7 +28,3 @@ export interface DeleteUserRequest {
 export interface DeleteUserResult {
   deletedAt: Date;
 }
-
-export module UserErrorCodes {
-  export var UserDoesNotExist: string = 'UserDoesNotExist';
-}

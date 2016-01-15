@@ -6,6 +6,7 @@ abstract class BaseError {
   private _message: string;
 
   constructor(code: string, message: string) {
+    this._code = code;
     this._message = message;
   } InsufficientPrivliges
 
@@ -36,6 +37,12 @@ export class AuthorizationError extends UserError {
 export class ResourceNotFoundError extends UserError {
   constructor(message: string) {
     super(Contracts.ErrorCodes.ResourceNotFound, message);
+  }
+}
+
+export class ConflictResourceError extends UserError {
+  constructor(message: string) {
+    super(Contracts.ErrorCodes.ConflictResource, message);
   }
 }
 

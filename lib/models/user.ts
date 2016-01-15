@@ -35,15 +35,21 @@ export class User extends ModelInstance<UserInstance> {
   }
 
   // static methods
-  static create(userContext: UserContext): Q.Promise<User> {
-    return _Q(UserModel.create(<UserInternal>userContext))
-      .then((instance: UserInstance): User=> {
-      return new User(instance);
-    });
+  static async create(userContext: UserContext): Promise<User> {
+    var instance: UserInstance = await UserModel.create(<UserInternal>userContext);
+    return new User(instance);
   }
 
   static async findById(id: string): Promise<User> {
     var instance: UserInstance = await UserModel.findOne({ where: { uid: id } });
+    if (instance) {
+      return new User(instance);
+    }
+    return null;
+  }
+
+  static async findByUserName(name: string): Promise<User> {
+    var instance: UserInstance = await UserModel.findOne({ where: { username: name } });
     if (instance) {
       return new User(instance);
     }

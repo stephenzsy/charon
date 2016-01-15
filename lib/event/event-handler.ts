@@ -7,7 +7,7 @@ import * as UUID from 'node-uuid';
 import * as jwt from 'jsonwebtoken';
 
 import {AuthTokenConfig, TokenContext} from '../models/app-configs';
-import {AuthorizationError, UserError, ResourceNotFoundError} from '../models/errors';
+import {AuthorizationError, UserError, ConflictResourceError, ResourceNotFoundError} from '../models/errors';
 import {TokenScope} from '../../models/common';
 import {ErrorCodes} from '../../models/errors';
 
@@ -164,7 +164,9 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
       if (err instanceof UserError) {
         if (err instanceof ResourceNotFoundError) {
           event.expressRes.status(404).send(err.jsonObj);
-        } else {
+        } else if (err instanceof ConflictResourceError){
+          event.expressRes.status(409).send(err.jsonObj);
+         } else {
           event.expressRes.status(400).send(err.jsonObj);
         }
       } else {
