@@ -10,7 +10,7 @@ import * as validator from 'validator';
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {CreateUserRequest, CreateUserResult, User as IUser, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
-import {User} from '../../../lib/models/user';
+import {User} from '../../../lib/models/users';
 import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 

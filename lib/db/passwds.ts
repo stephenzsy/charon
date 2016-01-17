@@ -62,7 +62,13 @@ export class DataAccessPassword extends DataAccessCommon<PasswordModel> {
     var model: PasswordModel = <PasswordModel>this.sqlize.define(
       'password',
       this.createModelAttributes(), {
-        timestamps: false
+        timestamps: false,
+        indexes: [
+          {
+            unique: true,
+            fields: [Columns.USER_ID, Columns.NETWORK_ID]
+          }
+        ]
       });
 
     model.belongsTo(this.userModel, { foreignKey: Columns.USER_ID, as: 'user' });

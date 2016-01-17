@@ -6,5 +6,8 @@
   "exclude": [
     "node_modules",
     "app/frontend"
-  ]
+  ],
+  "formatCodeOptions": {
+    "indentSize": 2
+  }
 }

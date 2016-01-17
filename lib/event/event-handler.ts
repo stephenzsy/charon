@@ -171,6 +171,7 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
         }
       } else {
         console.error(err);
+        console.error(err.stack);
         event.expressRes.sendStatus(500);
       }
     } else if (event.action.out) {

@@ -1,8 +1,5 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
-import * as Q from 'q';
-var _Q = require('q');
-
 import {Network as INetwork} from '../../models/networks';
 const NetworksConfig: INetwork[] = require('../../config/networks-config.json');
 
@@ -32,8 +29,15 @@ export class Network {
   static get all(): Network[] {
     return allNetworks;
   }
+
+  static findById(id: string): Network {
+    return networksMap[id];
+  }
 }
 
+const networksMap: { [id: string]: Network } = {}
 const allNetworks: Network[] = NetworksConfig.map((config: INetwork): Network => {
-  return new Network(config);
+  var network: Network = new Network(config);
+  networksMap[network.id] = network;
+  return network;
 });

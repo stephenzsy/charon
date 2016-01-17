@@ -9,11 +9,20 @@ export module UserPasswordStatus {
   export const Revoked: string = 'revoked';
 }
 
-export interface CreateUserPasswordResult {
-  /**
-   * Password ID
-   */
-  id: string;
+export interface UserPasswordMetadata {
+  userId: string;
+  networkId: string;
+  passwordId: string;
   validTo: Date;
-  status: string;
 }
+
+export interface CreateUserPasswordResult extends UserPasswordMetadata {
+  password: string;
+}
+
+export interface GetUserPasswordsRequest {
+  userId: string;
+  networkId?: string;
+}
+
+export type GetUserPasswordsResult = UserPasswordMetadata[]
