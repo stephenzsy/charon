@@ -4,7 +4,7 @@
     "sourceMap": true
   },
   "exclude": [
-    "node_modules"
+    "jspm_packages"
   ],
   "formatCodeOptions": {
     "indentSize": 2

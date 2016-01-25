@@ -30,10 +30,10 @@
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
     },
     "angularjs/angular.d.ts": {
-      "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
+      "commit": "7fffbd3e040a93c244777e3be04cd6223ac69301"
     },
     "jquery/jquery.d.ts": {
-      "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
+      "commit": "7fffbd3e040a93c244777e3be04cd6223ac69301"
     },
     "node-uuid/node-uuid-base.d.ts": {
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
@@ -70,6 +70,12 @@
     },
     "moment/moment-node.d.ts": {
       "commit": "587f470b5e235dfed0f9d1681f6da536cfb60eec"
+    },
+    "angular-material/angular-material.d.ts": {
+      "commit": "7fffbd3e040a93c244777e3be04cd6223ac69301"
+    },
+    "angularjs/angular-route.d.ts": {
+      "commit": "7fffbd3e040a93c244777e3be04cd6223ac69301"
     }
   }
 }

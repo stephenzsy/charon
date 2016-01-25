@@ -15,6 +15,7 @@ import * as Shared from './shared';
 import {Network} from '../models/networks';
 import {NetworkConfig} from '../lib/config/networks';
 import {createBase62Password} from '../lib/secrets/utils';
+import 'babel-polyfill';
 
 const NetworksConfig: NetworkConfig[] = require('../config/init/networks-config.json');
 const charonSequelize: sequelize.Sequelize = new Sequelize('charon', 'root');
@@ -25,8 +26,8 @@ async function configureNetwork(config: NetworkConfig): Promise<Network> {
   var dbName: string = 'rad' + (++counter);
 
   // create db
-  await charonSequelize.query('DROP DATABSE IF EXISTS ' + dbName, { type: sequelize.QueryTypes.RAW });
-  await charonSequelize.query('CREATE DATABSE ' + dbName, { type: sequelize.QueryTypes.RAW });
+  await charonSequelize.query('DROP DATABASE IF EXISTS ' + dbName, { type: sequelize.QueryTypes.RAW });
+  await charonSequelize.query('CREATE DATABASE ' + dbName, { type: sequelize.QueryTypes.RAW });
   var password: string = await createBase62Password(128);
   return {
     id: UUID.v4(),

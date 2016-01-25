@@ -17,6 +17,18 @@ gulp.task('clean', function() {
   ]);
 });
 
+gulp.task('tsc-frontend', function() {
+  var tsProject = ts.createProject(__dirname + '/frontend/tsconfig.json');
+  return gulp.src([
+    'frontend/**/*.ts'
+  ], {base:'./'})
+  .pipe(ts(tsProject))
+  .pipe(rename(function(path) {
+    path.extname = '.js';
+  }))
+  .pipe(gulp.dest('.'));
+});
+
 gulp.task('tsc', function() {
   var tsProject = ts.createProject(__dirname + '/tsconfig.json');
   return gulp.src([
@@ -38,4 +50,4 @@ gulp.task('tsc', function() {
     .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['tsc']);
+gulp.task('default', ['tsc', 'tsc-frontend']);

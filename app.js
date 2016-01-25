@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 var apiRoutes = require('./routes/api');
-
+var frontendRoutes = require('./routes/frontend');
 var app = express();
 
 // uncomment after placing your favicon in /public
@@ -18,8 +18,9 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cors());
 app.use(cookieParser());
-
-app.use('/', apiRoutes);
+app.use(express.static('frontend'));
+app.use('/api', apiRoutes);
+app.use('/', frontendRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -34,8 +35,8 @@ app.use(function(req, res, next) {
 // will print stacktrace
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
+    var status = err.status || 500;
+    res.send(status, {
       message: err.message,
       error: err
     });
@@ -45,8 +46,8 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
+  var status = err.status || 500;
+  res.send(err.statusl, {
     message: err.message,
     error: {}
   });
