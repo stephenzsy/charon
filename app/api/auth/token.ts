@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as express from 'express';
 import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
+import * as moment from 'moment';
+const _moment: moment.MomentStatic = require('moment');
 
 import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {AuthTokenConfig, TokenContext} from '../../../lib/models/app-configs';
@@ -27,7 +29,7 @@ export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetToken
     return {
       scope: req.scope,
       token: token,
-      expiry: Date.now() + 30 * 60 * 1000
+      expiry: _moment().add(55, 'minutes').toDate()
     };
   }
 }

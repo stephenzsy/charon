@@ -14,19 +14,31 @@ gulp.task('clean', function() {
     'lib/**/*.js',
     'routes/**/*.js',
     'scripts/**/*.js',
+    'frontend/app/**/*.js'
   ]);
 });
 
-gulp.task('tsc-frontend', function() {
+gulp.task('copy-models-frontend', function() {
+  gulp.src('./models/**/*.ts')
+    .pipe(gulp.dest('./frontend/app/models'));
+});
+
+gulp.task('tsc-frontend', ['copy-models-frontend'], function() {
   var tsProject = ts.createProject(__dirname + '/frontend/tsconfig.json');
   return gulp.src([
-    'frontend/**/*.ts'
-  ], {base:'./'})
-  .pipe(ts(tsProject))
-  .pipe(rename(function(path) {
-    path.extname = '.js';
-  }))
-  .pipe(gulp.dest('.'));
+      'frontend/**/*.ts'
+    ], {
+      base: './'
+    })
+    .pipe(ts(tsProject))
+    .pipe(babel({
+      "presets": ["es2015"],
+      "plugins": ["transform-es2015-modules-systemjs"]
+    }))
+    .pipe(rename(function(path) {
+      path.extname = '.js';
+    }))
+    .pipe(gulp.dest('.'));
 });
 
 gulp.task('tsc', function() {

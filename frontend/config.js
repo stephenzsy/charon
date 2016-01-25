@@ -16,8 +16,10 @@ System.config({
   map: {
     "angular": "github:angular/bower-angular@1.4.9",
     "angular-material": "github:angular/bower-material@1.0.3",
+    "angular-resource": "github:angular/bower-angular-resource@1.4.9",
     "angular-route": "github:angular/bower-angular-route@1.4.9",
     "babel": "npm:babel-core@5.8.35",
+    "babel-polyfill": "npm:babel-polyfill@6.3.14",
     "babel-preset-es2015": "npm:babel-preset-es2015@6.3.13",
     "babel-runtime": "npm:babel-runtime@5.8.35",
     "bootstrap": "github:twbs/bootstrap@3.3.6",
@@ -28,6 +30,9 @@ System.config({
       "angular": "github:angular/bower-angular@1.4.9"
     },
     "github:angular/bower-angular-aria@1.4.9": {
+      "angular": "github:angular/bower-angular@1.4.9"
+    },
+    "github:angular/bower-angular-resource@1.4.9": {
       "angular": "github:angular/bower-angular@1.4.9"
     },
     "github:angular/bower-angular-route@1.4.9": {
@@ -332,6 +337,12 @@ System.config({
       "babel-runtime": "npm:babel-runtime@5.8.35",
       "babel-types": "npm:babel-types@6.4.5"
     },
+    "npm:babel-polyfill@6.3.14": {
+      "babel-regenerator-runtime": "npm:babel-regenerator-runtime@6.3.13",
+      "babel-runtime": "npm:babel-runtime@5.8.35",
+      "core-js": "npm:core-js@1.2.6",
+      "process": "github:jspm/nodelibs-process@0.1.2"
+    },
     "npm:babel-preset-es2015@6.3.13": {
       "babel-plugin-check-es2015-constants": "npm:babel-plugin-check-es2015-constants@6.3.13",
       "babel-plugin-transform-es2015-arrow-functions": "npm:babel-plugin-transform-es2015-arrow-functions@6.4.0",
@@ -353,6 +364,9 @@ System.config({
       "babel-plugin-transform-es2015-typeof-symbol": "npm:babel-plugin-transform-es2015-typeof-symbol@6.4.3",
       "babel-plugin-transform-es2015-unicode-regex": "npm:babel-plugin-transform-es2015-unicode-regex@6.4.3",
       "babel-plugin-transform-regenerator": "npm:babel-plugin-transform-regenerator@6.4.4"
+    },
+    "npm:babel-regenerator-runtime@6.3.13": {
+      "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:babel-register@6.4.3": {
       "babel-core": "npm:babel-core@6.4.5",

@@ -2,8 +2,12 @@
 
 import * as angular from 'angular';
 import 'angular-route';
+import 'angular-resource';
+
 import {UsersController, UsersControllerName} from '../users/users';
-import {NetworksController, NetworksControllerName} from '../networks/networks';
+import {networksController, networksControllerName} from '../networks/networks';
+
+import {charonServicesFactory, charonServicesName} from '../services/services';
 
 class MainController {
   constructor($scope: angular.IScope) {
@@ -18,16 +22,17 @@ function routes($routeProvider: angular.route.IRouteProvider, $locationProvider:
     })
     .when('/networks', {
       templateUrl: 'app/networks/view/networks.html',
-      controller: UsersControllerName
+      controller: networksControllerName
     });
 
   $locationProvider.html5Mode(true);
 }
 
-const module: angular.IModule = angular.module('main', ['ngRoute'])
+const mainModule: angular.IModule = angular.module('main', ['ngRoute', 'ngResource'])
+  .config(['$routeProvider', '$locationProvider', routes])
+  .factory(charonServicesName, charonServicesFactory)
   .controller('MainController', ['$scope', MainController])
   .controller(UsersControllerName, UsersController)
-  .controller(NetworksControllerName, NetworksController)
-  .config(['$routeProvider', '$locationProvider', routes]);
+  .controller(networksControllerName, networksController);
 
-export default module.name
+export default mainModule.name

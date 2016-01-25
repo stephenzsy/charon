@@ -1,9 +1,16 @@
+export module TokenScope {
+  export const Public: string = 'public';
+  export const Admin: string = 'admin';
+}
+
+export interface AuthToken {
+  scope: string;
+  token: string;
+  expiry: Date;
+}
+
 export interface GetTokenRequest {
   scope: string;
 }
 
-export interface GetTokenResult {
-  scope: string;
-  token: string;
-  expiry: number;
-}
+export type GetTokenResult = AuthToken;

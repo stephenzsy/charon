@@ -8,6 +8,7 @@ import 'bootstrap/css/bootstrap-theme.min.css!';
 
 import 'jquery';
 import 'bootstrap';
+import 'babel-polyfill/dist/polyfill.min';
 
 // Load Angular libraries
 
@@ -17,5 +18,11 @@ import * as angular from 'angular';
 
 import main from './main/main';
 
-let app = angular
-  .module('charon', [main]);
+angular
+  .element(document)
+  .ready(() => {
+    let body = document.getElementsByTagName("body")[0];
+    let app = angular
+      .module('charon', [main]);
+    angular.bootstrap(body, [app.name], { strictDi: false });
+  });

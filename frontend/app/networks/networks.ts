@@ -1,7 +1,11 @@
 import * as angular from 'angular';
+import {CharonServices, charonServicesName} from '../services/services';
 
-export class NetworksController {
-  constructor() { }
+class NetworksController {
+  constructor(charonServices: CharonServices) {
+    charonServices.networks.listNetworks();
+  }
 }
 
-export const NetworksControllerName: string = 'NetworksController';
+export const networksControllerName: string = 'NetworksController';
+export const networksController = [charonServicesName, NetworksController];
