@@ -1,25 +1,6 @@
 import {NetworksService} from './networks';
-import {AuthToken, TokenScope} from '../models/auth';
-
-interface AuthTokenResourceClass extends angular.resource.IResourceClass<AuthToken> {
-}
-
-class AuthTokenManager {
-  private resource: AuthTokenResourceClass;
-  private scope: string;
-
-  constructor($resource: angular.resource.IResourceService, scope: string) {
-    this.resource = $resource<AuthToken>('/api/auth/token', {}, {
-      get: { method: 'get' }
-    });
-    this.scope = scope;
-  }
-
-  async getToken() {
-    var token: AuthToken = await this.resource.get({ scope: this.scope });
-    console.log(token);
-  }
-}
+import {AuthTokenManager} from './base';
+import {TokenScope} from '../models/auth';
 
 export class CharonServices {
   private authTokenManager: AuthTokenManager;
@@ -27,8 +8,7 @@ export class CharonServices {
 
   constructor($resource: angular.resource.IResourceService) {
     this.authTokenManager = new AuthTokenManager($resource, TokenScope.Admin);
-    this.authTokenManager.getToken();
-    this._networks = new NetworksService($resource);
+    this._networks = new NetworksService($resource, this.authTokenManager);
   }
 
   get networks(): NetworksService {
