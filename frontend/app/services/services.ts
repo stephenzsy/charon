@@ -1,18 +1,25 @@
 import {NetworksService} from './networks';
+import {UsersService} from './users';
 import {AuthTokenManager} from './base';
 import {TokenScope} from '../models/auth';
 
 export class CharonServices {
   private authTokenManager: AuthTokenManager;
   private _networks: NetworksService;
+  private _users: UsersService;
 
   constructor($resource: angular.resource.IResourceService) {
     this.authTokenManager = new AuthTokenManager($resource, TokenScope.Admin);
     this._networks = new NetworksService($resource, this.authTokenManager);
+    this._users = new UsersService($resource, this.authTokenManager);
   }
 
   get networks(): NetworksService {
     return this._networks;
+  }
+
+  get users(): UsersService {
+    return this._users;
   }
 
   static factory($resource: angular.resource.IResourceService) {

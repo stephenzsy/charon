@@ -4,8 +4,8 @@ import * as angular from 'angular';
 import 'angular-route';
 import 'angular-resource';
 
-import {UsersController, UsersControllerName} from '../users/users';
-import {networksController, networksControllerName} from '../networks/networks';
+import {controller as usersController, name as usersControllerName} from '../users/users';
+import {controller as networksController, name as networksControllerName} from '../networks/networks';
 
 import {charonServicesFactory, charonServicesName} from '../services/services';
 
@@ -18,7 +18,7 @@ function routes($routeProvider: angular.route.IRouteProvider, $locationProvider:
   $routeProvider
     .when('/users', {
       templateUrl: 'app/users/view/users.html',
-      controller: UsersControllerName
+      controller: usersControllerName
     })
     .when('/networks', {
       templateUrl: 'app/networks/view/networks.html',
@@ -32,7 +32,7 @@ const mainModule: angular.IModule = angular.module('main', ['ngRoute', 'ngResour
   .config(['$routeProvider', '$locationProvider', routes])
   .factory(charonServicesName, charonServicesFactory)
   .controller('MainController', ['$scope', MainController])
-  .controller(UsersControllerName, UsersController)
+  .controller(usersControllerName, usersController)
   .controller(networksControllerName, networksController);
 
 export default mainModule.name

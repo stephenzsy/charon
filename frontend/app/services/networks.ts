@@ -24,10 +24,7 @@ export class NetworksService extends ServiceBase<NetworkResource, NetworkResourc
     }
     var service: NetworkResourceClass = await this.service();
     var networks: angular.resource.IResourceArray<NetworkResource> = await service.list().$promise;
-    this.cachedNetworks = [];
-    networks.forEach((network: NetworkResource) => {
-      this.cachedNetworks.push(network);
-    });
+    this.cachedNetworks = networks;
     return this.cachedNetworks;
   }
 
