@@ -19,6 +19,7 @@ function handler(req, res, next) {
 
 router.get('/', handler);
 router.get('/users', handler);
+router.get('/users/:id', handler);
 router.get('/networks', handler);
 
 module.exports = router;

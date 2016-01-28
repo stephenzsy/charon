@@ -19,6 +19,18 @@ import {resolveNetwork} from '../networks/networks';
 import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 
+export async function getUserPasswords(user: User, network?: Network): Promise<UserPasswordMetadata[]> {
+  var passwords: Password[] = await Password.find(user, network);
+  return passwords.map((password: Password): UserPasswordMetadata => {
+    return {
+      userId: user.id,
+      networkId: password.networkId,
+      validTo: password.validTo,
+      passwordId: password.id
+    }
+  });
+}
+
 class GetUserPasswordsEnactor extends ActionEnactor<GetUserPasswordsRequest, GetUserPasswordsResult> {
   async enactAsync(req: GetUserPasswordsRequest): Promise<GetUserPasswordsResult> {
     var network: Network = null;
@@ -26,15 +38,7 @@ class GetUserPasswordsEnactor extends ActionEnactor<GetUserPasswordsRequest, Get
       network = resolveNetwork(req.networkId);
     }
     var user: User = await resolveUser(req.userId);
-    var passwords: Password[] = await Password.find(user, network);
-    return passwords.map((password: Password): UserPasswordMetadata => {
-      return {
-        userId: user.id,
-        networkId: password.networkId,
-        validTo: password.validTo,
-        passwordId: password.id
-      }
-    });
+    return getUserPasswords(user, network);
   }
 }
 

@@ -8,28 +8,34 @@ import * as express from 'express';
 import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {CreateUserRequest, CreateUserResult, User as IUser, ListUsersRequest, ListUsersResult, DeleteUserRequest, DeleteUserResult} from '../../../models/users';
+import { User as IUser,
+  CreateUserRequest, CreateUserResult,
+  GetUserRequest, GetUserResult,
+  ListUsersRequest, ListUsersResult,
+  DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
 import {User} from '../../../lib/models/users';
 import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
+import {UserPasswordMetadata} from '../../../models/secrets';
+import {getUserPasswords} from '../secrets/passwords';
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
   async enactAsync(req: ListUsersRequest): Promise<ListUsersResult> {
     return User.findAndCountAllActive({ limit: req.limit })
       .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
-      return {
-        count: result.count,
-        items: result.items.map((user: User): IUser => {
-          return {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            createdAt: user.createdAt
-          };
-        })
-      };
-    });
+        return {
+          count: result.count,
+          items: result.items.map((user: User): IUser => {
+            return {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              createdAt: user.createdAt
+            };
+          })
+        };
+      });
   }
 }
 
@@ -37,41 +43,57 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
   async enactAsync(req: CreateUserRequest): Promise<CreateUserResult> {
     return User.findByUserName(req.username)
       .then((user: User): Promise<User> => {
-      if (user) {
-        throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
-      }
-      return User.create(req);
-    }).then((user: User): CreateUserResult => {
-      return {
-        id: user.id,
-        createdAt: user.createdAt
-      };
-    });
+        if (user) {
+          throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
+        }
+        return User.create(req);
+      }).then((user: User): CreateUserResult => {
+        return {
+          id: user.id,
+          createdAt: user.createdAt
+        };
+      });
   }
 }
 
 class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
   enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
     return resolveUser(req.id)
-      .then((user: User): Q.Promise<void>=> {
-      return user.delete();
-    })
-      .then((): DeleteUserResult=> {
-      return {
-        deletedAt: new Date()
-      }
-    });
+      .then((user: User): Q.Promise<void> => {
+        return user.delete();
+      })
+      .then((): DeleteUserResult => {
+        return {
+          deletedAt: new Date()
+        }
+      });
+  }
+}
+
+class GetUserEnactor extends ActionEnactor<GetUserRequest, GetUserResult> {
+  async  enactAsync(req: GetUserRequest): Promise<GetUserResult> {
+    var user: User = await resolveUser(req.id);
+    var result: GetUserResult = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt
+    }
+    if (req.withPasswords) {
+      result.passwords = await getUserPasswords(user);
+    }
+    return result;
   }
 }
 
 export async function resolveUser(userId: string): Promise<User> {
   return User.findById(userId)
-    .then((user: User): User=> {
-    if (!user) {
-      throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
-    }
-    return user;
-  });
+    .then((user: User): User => {
+      if (!user) {
+        throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
+      }
+      return user;
+    });
 }
 
 export module Handlers {
@@ -93,6 +115,20 @@ export module Handlers {
       };
     },
     enactor: new CreateUserEnactor()
+  });
+
+  export const getUserHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetUserRequest, GetUserResult>({
+    requireAdminAuthoriztaion: true,
+    requestDeserializer: (req: express.Request): GetUserRequest => {
+      var id: string = req.params['id'];
+      RequestValidations.validateUUID(id, 'id');
+      var withPasswords: boolean = validator.toBoolean(req.query['withPasswords']);
+      return {
+        id: id,
+        withPasswords: withPasswords
+      };
+    },
+    enactor: new GetUserEnactor()
   });
 
   export const listUsersHandler: express.RequestHandler = HandlerUtils.newRequestHandler<ListUsersRequest, ListUsersResult>({

@@ -26,6 +26,7 @@ router.post('/certs/client-keypairs', ClientKeypairsHandlers.createClientKeypair
 
 // users
 router.get('/users', UsersHandlers.listUsersHandler);
+router.get('/users/:id', UsersHandlers.getUserHandler);
 router.delete('/users/:id', UsersHandlers.deleteUserHandler);
 router.post('/users', UsersHandlers.createUserHandler);
 
