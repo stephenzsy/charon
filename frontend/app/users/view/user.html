@@ -4,7 +4,9 @@
     <li><a href="/users">Users</a></li>
     <li class="active">{{id}}</li>
   </ol>
-  <h1>User ({{username}})</h1>
+  <div class="page-header">
+    <h1>{{username}} <small>User</small></h1>
+  </div>
   <div>
     <div class="row">
       <div class="col-sm-2"><b>Email</b></div>
@@ -13,5 +15,13 @@
   </div>
   <section>
     <h2>Passwords</h2>
+    <div ng-repeat="(networkId, network) in networks">
+      <div><b>Network:</b> {{network.name}}</div>
+      <div class="bg-warning" ng-if="!network.password">
+        No password for this network
+        <button class="btn-link">Create new password</button>
+      </div>
+      <hr>
+    </div>
   </section>
 </div>

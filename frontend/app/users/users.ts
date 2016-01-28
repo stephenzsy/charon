@@ -1,5 +1,7 @@
 import * as angular from 'angular';
 import {User, ListUsersResult, GetUserResult} from '../models/users';
+import {Network} from '../models/networks';
+import {UserPasswordMetadata} from '../models/secrets';
 import {CharonServices, charonServicesName} from '../services/services';
 
 interface AddUserFormController extends angular.IFormController {
@@ -47,8 +49,12 @@ class UsersController {
 
 export const name: string = 'UsersController';
 export const controller = ['$scope', charonServicesName, UsersController];
+interface NetworkScope extends Network {
+  password?: UserPasswordMetadata;
+}
 
 interface UserControllerScope extends angular.IScope, User {
+  networks: { [id: string]: NetworkScope };
 }
 
 class UserController {
@@ -59,13 +65,21 @@ class UserController {
     this.$scope = $scope;
     this.charonServices = charonServices;
     $scope.id = $routeParams['id'];
-    this.getUser();
+    this.loadData();
   }
 
-  private async getUser() {
+  private async loadData() {
     var result: GetUserResult = await this.charonServices.users.getUser({ id: this.$scope.id, withPasswords: true });
     this.$scope.username = result.username;
     this.$scope.email = result.email;
+    var networks: Network[] = await this.charonServices.networks.listNetworks();
+    this.$scope.networks = {};
+    networks.forEach((network: Network) => {
+      this.$scope.networks[network.id] = network;
+    });
+    result.passwords.forEach((password: UserPasswordMetadata) => {
+      this.$scope.networks[password.networkId].password = password;
+    });
     this.$scope.$apply();
   }
 }
