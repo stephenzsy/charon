@@ -15,13 +15,27 @@
   </div>
   <section>
     <h2>Passwords</h2>
-    <div ng-repeat="(networkId, network) in networks">
+    <div ng-repeat="network in networks">
       <div><b>Network:</b> {{network.name}}</div>
-      <div class="bg-warning" ng-if="!network.password">
-        No password for this network
-        <button class="btn-link">Create new password</button>
+      <div class="panel panel-warning" ng-if="!network.hasPassword">
+        <div class="panel-body">
+          No password for this network
+          <button class="btn-link" ng-click="createPassword(network.id)">Create new password</button>
+        </div>
       </div>
-      <hr>
+      <div class="panel panel-info" ng-if="network.hasPassword">
+        <div class="panel-heading">{{network.password.id}}</div>
+        <div class="panel-body">
+          <div><b>Valid Until:</b> {{network.password.validTo}}</div>
+          <div class="panel panel-primary" ng-if="network.password.password">
+            <div class="panel-heading"><b>Password</b></div>
+            <div class="panel-body"><pre>{{network.password.password}}</pre></div>
+          </div>
+        </div>
+        <div class="panel-footer text-right">
+          <button class="btn btn-danger" ng-click="deletePassword(network.id)">Delete</button>
+        </div>
+      </div>
     </div>
   </section>
 </div>

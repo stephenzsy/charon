@@ -10,9 +10,9 @@ export module UserPasswordStatus {
 }
 
 export interface UserPasswordMetadata {
+  id: string;
   userId: string;
   networkId: string;
-  passwordId: string;
   validTo: Date;
 }
 

@@ -1,20 +1,20 @@
 
 import * as angular from 'angular';
 import {User, ListUsersResult, CreateUserRequest, CreateUserResult, GetUserRequest, GetUserResult} from '../models/users';
-import {AuthTokenManager, ServiceBase} from './base';
+import {AuthTokenManager, CharonResourceClass, ServiceBase} from './base';
 
 interface UserResource extends angular.resource.IResource<User>, User { }
 interface GetUserResultResource extends angular.resource.IResource<GetUserResult>, GetUserResult { }
 interface ListUsersResultResource extends angular.resource.IResource<ListUsersResult>, ListUsersResult { }
 interface CreateUserResultResource extends angular.resource.IResource<CreateUserResult>, CreateUserResult { }
 
-interface UserResourceClass extends angular.resource.IResourceClass<UserResource> {
+interface UsersResourceClass extends CharonResourceClass {
   list(): ListUsersResultResource;
   post(request: CreateUserRequest): CreateUserResultResource;
   getUser(request: GetUserRequest): GetUserResultResource;
 }
 
-export class UsersService extends ServiceBase<UserResource, UserResourceClass> {
+export class UsersService extends ServiceBase<UsersResourceClass> {
 
   constructor($resource: angular.resource.IResourceService, authTokenManager: AuthTokenManager) {
     super($resource, authTokenManager, '/api/users', {
@@ -25,17 +25,17 @@ export class UsersService extends ServiceBase<UserResource, UserResourceClass> {
   }
 
   async listUsers(): Promise<ListUsersResult> {
-    var service: UserResourceClass = await this.service();
+    var service: UsersResourceClass = await this.getResource();
     return service.list().$promise;
   }
 
   async getUser(request: GetUserRequest): Promise<GetUserResult> {
-    var service: UserResourceClass = await this.service();
+    var service: UsersResourceClass = await this.getResource();
     return service.getUser(request).$promise;
   }
 
   async createUser(request: CreateUserRequest): Promise<User> {
-    var service: UserResourceClass = await this.service();
+    var service: UsersResourceClass = await this.getResource();
     try {
       var result: CreateUserResult = await service.post(request).$promise;
       return {

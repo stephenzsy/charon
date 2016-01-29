@@ -23,10 +23,10 @@ export async function getUserPasswords(user: User, network?: Network): Promise<U
   var passwords: Password[] = await Password.find(user, network);
   return passwords.map((password: Password): UserPasswordMetadata => {
     return {
+      id: password.id,
       userId: user.id,
       networkId: password.networkId,
-      validTo: password.validTo,
-      passwordId: password.id
+      validTo: password.validTo
     }
   });
 }
@@ -42,7 +42,7 @@ class GetUserPasswordsEnactor extends ActionEnactor<GetUserPasswordsRequest, Get
   }
 }
 
-class CreateuserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
+class CreateUserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
   async enactAsync(req: CreateUserPasswordRequest): Promise<CreateUserPasswordResult> {
     var network: Network = resolveNetwork(req.networkId);
     return resolveUser(req.userId)
@@ -56,9 +56,9 @@ class CreateuserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest,
           status = UserPasswordStatus.Expired;
         }
         return {
+          id: password.id,
           userId: req.userId,
           networkId: req.networkId,
-          passwordId: password.id,
           validTo: password.validTo,
           password: password.password
         };
@@ -70,7 +70,7 @@ export module Handlers {
   export const createUserPasswordHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateUserPasswordRequest, CreateUserPasswordResult>({
     requireAdminAuthoriztaion: true,
     requestDeserializer: (req: express.Request): CreateUserPasswordRequest => {
-      var userId: string = req.params['userId'];
+      var userId: string = req.body['userId'];
       RequestValidations.validateUUID(userId, 'userId');
 
       var networkId: string = req.body['networkId'];
@@ -81,7 +81,7 @@ export module Handlers {
         networkId: networkId
       };
     },
-    enactor: new CreateuserPasswordEnactor()
+    enactor: new CreateUserPasswordEnactor()
   });
 
   export const getUserPasswordsHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetUserPasswordsRequest, GetUserPasswordsResult>({

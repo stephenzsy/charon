@@ -31,8 +31,8 @@ router.delete('/users/:id', UsersHandlers.deleteUserHandler);
 router.post('/users', UsersHandlers.createUserHandler);
 
 // user passwords
-router.post('/users/:userId/passwords', PasswordsHandlers.createUserPasswordHandler);
-router.get('/users/:userId/passwords', PasswordsHandlers.getUserPasswordsHandler);
+router.post('/passwords', PasswordsHandlers.createUserPasswordHandler);
+//router.get('/users/:userId/passwords', PasswordsHandlers.getUserPasswordsHandler);
 
 // networks
 router.get('/networks', NetworkHandlers.listNetworksHandler);

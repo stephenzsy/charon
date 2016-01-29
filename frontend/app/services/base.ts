@@ -30,13 +30,15 @@ export class AuthTokenManager {
 
 export type ServiceActions = { [name: string]: angular.resource.IActionDescriptor; }
 
-export class ServiceBase<T, U> {
+export interface CharonResourceClass extends angular.resource.IResourceClass<any> { }
+
+export class ServiceBase<T extends CharonResourceClass> {
   private $resource: angular.resource.IResourceService;
   private authTokenManager: AuthTokenManager;
   private token: string = null;
   private path: string;
   private actions: ServiceActions;
-  private _service: U;
+  private _resource: T;
 
   constructor(
     $resource: angular.resource.IResourceService,
@@ -49,7 +51,7 @@ export class ServiceBase<T, U> {
     this.actions = actions;
   }
 
-  protected async service(): Promise<U> {
+  protected async getResource(): Promise<T> {
     var authToken: AuthToken = await this.authTokenManager.getToken();
     if (authToken.token !== this.token) {
       this.token = authToken.token;
@@ -59,8 +61,8 @@ export class ServiceBase<T, U> {
         }
         this.actions[name].headers['x-access-token'] = authToken.token;
       }
-      this._service = this.$resource<T, U>(this.path, null, this.actions);
+      this._resource = this.$resource<T, any>(this.path, null, this.actions);
     }
-    return this._service;
+    return this._resource;
   }
 }

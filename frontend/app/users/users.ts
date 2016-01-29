@@ -1,7 +1,7 @@
 import * as angular from 'angular';
 import {User, ListUsersResult, GetUserResult} from '../models/users';
-import {Network} from '../models/networks';
-import {UserPasswordMetadata} from '../models/secrets';
+import {NetworkMetadata} from '../models/networks';
+import {UserPasswordMetadata, CreateUserPasswordResult} from '../models/secrets';
 import {CharonServices, charonServicesName} from '../services/services';
 
 interface AddUserFormController extends angular.IFormController {
@@ -49,37 +49,69 @@ class UsersController {
 
 export const name: string = 'UsersController';
 export const controller = ['$scope', charonServicesName, UsersController];
-interface NetworkScope extends Network {
+
+interface NetworkScope extends NetworkMetadata {
+  hasPassword: boolean;
   password?: UserPasswordMetadata;
 }
 
 interface UserControllerScope extends angular.IScope, User {
-  networks: { [id: string]: NetworkScope };
+  networks: NetworkScope[];
+  createPassword(networkId: string): void;
 }
 
 class UserController {
+  private userId: string;
   private $scope: UserControllerScope;
   private charonServices: CharonServices;
 
   constructor($scope: UserControllerScope, $routeParams: angular.route.IRouteParamsService, charonServices: CharonServices) {
     this.$scope = $scope;
     this.charonServices = charonServices;
-    $scope.id = $routeParams['id'];
+    this.userId = $routeParams['id'];
+    this.$scope.id = this.userId;
+    $scope.createPassword = (networkId: string) => {
+      this.createPassword(networkId);
+    };
     this.loadData();
   }
 
+  private async createPassword(networkId: string) {
+    var result: CreateUserPasswordResult = await this.charonServices.secrets.CreateUserPassword({
+      userId: this.userId,
+      networkId: networkId
+    });
+
+    this.$scope.networks.forEach((ns: NetworkScope) => {
+      if (ns.id === networkId) {
+        ns.hasPassword = true;
+        ns.password = result;
+      }
+    });
+    this.$scope.$apply();
+  }
+
   private async loadData() {
-    var result: GetUserResult = await this.charonServices.users.getUser({ id: this.$scope.id, withPasswords: true });
+    var result: GetUserResult = await this.charonServices.users.getUser({ id: this.userId, withPasswords: true });
     this.$scope.username = result.username;
     this.$scope.email = result.email;
-    var networks: Network[] = await this.charonServices.networks.listNetworks();
-    this.$scope.networks = {};
-    networks.forEach((network: Network) => {
-      this.$scope.networks[network.id] = network;
+    let networks: NetworkMetadata[] = await this.charonServices.networks.listNetworks();
+    let networkScopes: NetworkScope[] = [];
+    let dict: { [id: string]: NetworkScope } = {};
+    networks.forEach((network: NetworkMetadata) => {
+      var ns: NetworkScope = {
+        id: network.id,
+        name: network.name,
+        hasPassword: false
+      };
+      dict[network.id] = ns;
+      networkScopes.push(ns);
     });
     result.passwords.forEach((password: UserPasswordMetadata) => {
-      this.$scope.networks[password.networkId].password = password;
+      dict[password.networkId].hasPassword = true;
+      dict[password.networkId].password = password;
     });
+    this.$scope.networks = networkScopes;
     this.$scope.$apply();
   }
 }
