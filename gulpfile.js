@@ -53,6 +53,7 @@ gulp.task('tsc', function() {
   return gulp.src([
       'models/**/*.ts',
       'app/api/**/*.ts',
+      'app/freeradius/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
       'scripts/**/*.ts',
