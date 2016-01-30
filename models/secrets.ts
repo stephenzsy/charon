@@ -25,4 +25,8 @@ export interface GetUserPasswordsRequest {
   networkId?: string;
 }
 
-export type GetUserPasswordsResult = UserPasswordMetadata[]
+export type GetUserPasswordsResult = UserPasswordMetadata[];
+
+export interface DeleteUserPasswordRequest {
+  id: string;
+}

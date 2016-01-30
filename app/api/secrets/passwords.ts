@@ -9,7 +9,8 @@ import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {CreateUserPasswordRequest, CreateUserPasswordResult, UserPasswordStatus,
-  GetUserPasswordsRequest, GetUserPasswordsResult, UserPasswordMetadata} from '../../../models/secrets';
+  GetUserPasswordsRequest, GetUserPasswordsResult, UserPasswordMetadata,
+  DeleteUserPasswordRequest} from '../../../models/secrets';
 import {User} from '../../../lib/models/users';
 import {Network} from '../../../lib/models/networks';
 import {Password} from '../../../lib/models/password';
@@ -18,29 +19,6 @@ import {resolveNetwork} from '../networks/networks';
 
 import {BadRequestError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
-
-export async function getUserPasswords(user: User, network?: Network): Promise<UserPasswordMetadata[]> {
-  var passwords: Password[] = await Password.find(user, network);
-  return passwords.map((password: Password): UserPasswordMetadata => {
-    return {
-      id: password.id,
-      userId: user.id,
-      networkId: password.networkId,
-      validTo: password.validTo
-    }
-  });
-}
-
-class GetUserPasswordsEnactor extends ActionEnactor<GetUserPasswordsRequest, GetUserPasswordsResult> {
-  async enactAsync(req: GetUserPasswordsRequest): Promise<GetUserPasswordsResult> {
-    var network: Network = null;
-    if (req.networkId) {
-      network = resolveNetwork(req.networkId);
-    }
-    var user: User = await resolveUser(req.userId);
-    return getUserPasswords(user, network);
-  }
-}
 
 class CreateUserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
   async enactAsync(req: CreateUserPasswordRequest): Promise<CreateUserPasswordResult> {
@@ -66,6 +44,12 @@ class CreateUserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest,
   }
 }
 
+class DeleteUserPasswordEnactor extends ActionEnactor<DeleteUserPasswordRequest, void> {
+  async enactAsync(req: DeleteUserPasswordRequest): Promise<void> {
+    await Password.deleteById(req.id);
+  }
+}
+
 export module Handlers {
   export const createUserPasswordHandler: express.RequestHandler = HandlerUtils.newRequestHandler<CreateUserPasswordRequest, CreateUserPasswordResult>({
     requireAdminAuthoriztaion: true,
@@ -84,22 +68,16 @@ export module Handlers {
     enactor: new CreateUserPasswordEnactor()
   });
 
-  export const getUserPasswordsHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetUserPasswordsRequest, GetUserPasswordsResult>({
+  export const deleteUswerPasswordHandler: express.RequestHandler = HandlerUtils.newRequestHandler<DeleteUserPasswordRequest, void>({
     requireAdminAuthoriztaion: true,
-    requestDeserializer: (req: express.Request): GetUserPasswordsRequest => {
-      var userId: string = req.params['userId'];
-      RequestValidations.validateUUID(userId, 'userId');
-
-      var networkId: string = req.query['networkId'];
-      if (networkId) {
-        RequestValidations.validateUUID(networkId, 'networkId');
-      }
+    requestDeserializer: (req: express.Request): DeleteUserPasswordRequest => {
+      var passwordId: string = req.params['id'];
+      RequestValidations.validateUUID(passwordId, 'userId');
 
       return {
-        userId: userId,
-        networkId: networkId
+        id: passwordId
       };
     },
-    enactor: new GetUserPasswordsEnactor()
+    enactor: new DeleteUserPasswordEnactor()
   });
 }

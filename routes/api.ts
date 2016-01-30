@@ -32,7 +32,7 @@ router.post('/users', UsersHandlers.createUserHandler);
 
 // user passwords
 router.post('/passwords', PasswordsHandlers.createUserPasswordHandler);
-//router.get('/users/:userId/passwords', PasswordsHandlers.getUserPasswordsHandler);
+router.delete('/passwords/:id', PasswordsHandlers.deleteUswerPasswordHandler);
 
 // networks
 router.get('/networks', NetworkHandlers.listNetworksHandler);

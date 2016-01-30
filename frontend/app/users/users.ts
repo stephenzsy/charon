@@ -58,6 +58,7 @@ interface NetworkScope extends NetworkMetadata {
 interface UserControllerScope extends angular.IScope, User {
   networks: NetworkScope[];
   createPassword(networkId: string): void;
+  deletePassword(passwordId: string): void;
 }
 
 class UserController {
@@ -73,11 +74,14 @@ class UserController {
     $scope.createPassword = (networkId: string) => {
       this.createPassword(networkId);
     };
+    $scope.deletePassword = (passwordId: string) => {
+      this.deletePassword(passwordId);
+    };
     this.loadData();
   }
 
   private async createPassword(networkId: string) {
-    var result: CreateUserPasswordResult = await this.charonServices.secrets.CreateUserPassword({
+    var result: CreateUserPasswordResult = await this.charonServices.secrets.createUserPassword({
       userId: this.userId,
       networkId: networkId
     });
@@ -86,6 +90,17 @@ class UserController {
       if (ns.id === networkId) {
         ns.hasPassword = true;
         ns.password = result;
+      }
+    });
+    this.$scope.$apply();
+  }
+
+  private async deletePassword(passwordId: string) {
+    await this.charonServices.secrets.deleteUserPassword(passwordId);
+    this.$scope.networks.forEach((ns: NetworkScope) => {
+      if (ns.password && ns.password.id === passwordId) {
+        delete ns.password;
+        ns.hasPassword = false;
       }
     });
     this.$scope.$apply();

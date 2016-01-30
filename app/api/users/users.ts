@@ -9,33 +9,46 @@ import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import { User as IUser,
-  CreateUserRequest, CreateUserResult,
-  GetUserRequest, GetUserResult,
-  ListUsersRequest, ListUsersResult,
-  DeleteUserRequest, DeleteUserResult} from '../../../models/users';
+CreateUserRequest, CreateUserResult,
+GetUserRequest, GetUserResult,
+ListUsersRequest, ListUsersResult,
+DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
 import {User} from '../../../lib/models/users';
+import {Password} from '../../../lib/models/password';
+
 import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';
 import {UserPasswordMetadata} from '../../../models/secrets';
-import {getUserPasswords} from '../secrets/passwords';
+
+async function getUserPasswords(user: User): Promise<UserPasswordMetadata[]> {
+  var passwords: Password[] = await Password.find(user, null);
+  return passwords.map((password: Password): UserPasswordMetadata => {
+    return {
+      id: password.id,
+      userId: user.id,
+      networkId: password.networkId,
+      validTo: password.validTo
+    }
+  });
+}
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
   async enactAsync(req: ListUsersRequest): Promise<ListUsersResult> {
     return User.findAndCountAllActive({ limit: req.limit })
       .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
-        return {
-          count: result.count,
-          items: result.items.map((user: User): IUser => {
-            return {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              createdAt: user.createdAt
-            };
-          })
-        };
-      });
+      return {
+        count: result.count,
+        items: result.items.map((user: User): IUser => {
+          return {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            createdAt: user.createdAt
+          };
+        })
+      };
+    });
   }
 }
 
@@ -43,16 +56,16 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
   async enactAsync(req: CreateUserRequest): Promise<CreateUserResult> {
     return User.findByUserName(req.username)
       .then((user: User): Promise<User> => {
-        if (user) {
-          throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
-        }
-        return User.create(req);
-      }).then((user: User): CreateUserResult => {
-        return {
-          id: user.id,
-          createdAt: user.createdAt
-        };
-      });
+      if (user) {
+        throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
+      }
+      return User.create(req);
+    }).then((user: User): CreateUserResult => {
+      return {
+        id: user.id,
+        createdAt: user.createdAt
+      };
+    });
   }
 }
 
@@ -60,13 +73,13 @@ class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResul
   enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
     return resolveUser(req.id)
       .then((user: User): Q.Promise<void> => {
-        return user.delete();
-      })
+      return user.delete();
+    })
       .then((): DeleteUserResult => {
-        return {
-          deletedAt: new Date()
-        }
-      });
+      return {
+        deletedAt: new Date()
+      }
+    });
   }
 }
 
@@ -89,11 +102,11 @@ class GetUserEnactor extends ActionEnactor<GetUserRequest, GetUserResult> {
 export async function resolveUser(userId: string): Promise<User> {
   return User.findById(userId)
     .then((user: User): User => {
-      if (!user) {
-        throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
-      }
-      return user;
-    });
+    if (!user) {
+      throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
+    }
+    return user;
+  });
 }
 
 export module Handlers {

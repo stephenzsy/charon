@@ -23,6 +23,13 @@ gulp.task('copy-models-frontend', function() {
     .pipe(gulp.dest('./frontend/app/models'));
 });
 
+gulp.task('watch-frontend', function() {
+  gulp.watch([
+    'frontend/**/*.ts',
+    '!frontend/app/models/*.ts',
+  ], ['tsc-frontend']);
+});
+
 gulp.task('tsc-frontend', ['copy-models-frontend'], function() {
   var tsProject = ts.createProject(__dirname + '/frontend/tsconfig.json');
   return gulp.src([
