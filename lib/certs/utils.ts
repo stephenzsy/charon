@@ -7,7 +7,7 @@ import * as path from 'path';
 
 import {CertSubjectConfig} from '../../lib/models/cert';
 
-export function createPrivateKey(keyOutputPath: string): Q.Promise<void> {
+export async function createPrivateKey(keyOutputPath: string): Promise<void> {
   return Q.nfcall<void>(child_process.execFile, 'openssl', ['ecparam',
     '-out', keyOutputPath,
     '-name', 'secp384r1',

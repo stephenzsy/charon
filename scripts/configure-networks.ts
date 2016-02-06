@@ -15,7 +15,6 @@ import * as Shared from './shared';
 import {Network} from '../models/networks';
 import {NetworkConfig} from '../lib/config/networks';
 import {createBase62Password} from '../lib/secrets/utils';
-import 'babel-polyfill';
 
 const NetworksConfig: NetworkConfig[] = require('../config/init/networks-config.json');
 const charonSequelize: sequelize.Sequelize = new Sequelize('charon', 'root');

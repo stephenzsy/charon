@@ -11,8 +11,14 @@ export class Config {
     this.type = type;
   }
 
-  protected addConfig(key: string, value: ConfigValue) {
+  protected addKeyedConfig(key: string, value: ConfigValue): this {
     this.config.push({ key: key, value: value });
+    return this;
+  }
+
+  protected addConfig(value: ConfigValue): this {
+    this.config.push({ key: null, value: value });
+    return this;
   }
 }
 
@@ -45,8 +51,10 @@ export class Generator {
         var value: ConfigValue = c.value;
         if (value instanceof Config) {
           result.push(this.generate(value, indent + 2));
-        } else {
+        } else if (c.key) {
           result.push(subprefix + c.key + ' = ' + value);
+        } else {
+          result.push(subprefix + value);
         }
       });
 

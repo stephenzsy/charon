@@ -1,13 +1,15 @@
 ///<reference path="../typings/commander/commander.d.ts"/>
 ///<reference path="../typings/fs-extra/fs-extra.d.ts"/>
 
+import 'babel-polyfill';
+
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
 import * as fsExtra from 'fs-extra';
-import * as commander from 'commander';
 
+import * as Shared from './shared';
 import {CertSubjectConfig} from '../lib/models/cert';
 import {CertConfig} from '../lib/models/app-configs';
 import {createPrivateKey, getSubject} from '../lib/certs/utils';
@@ -42,9 +44,11 @@ var configCertsCaCertPem: string = path.join(configCertsCaDir, 'ca.crt');
 
 fsExtra.mkdirpSync(configCertsCaDir);
 
-// create CA private key
-createPrivateKey(configCertsCaKeyPem)
-  .then(() => {
+async function configureCA() {
+  // create CA private key
+  await createPrivateKey(configCertsCaKeyPem);
+
+  var subject: string = configureSubject(certsSubjectConfig);
   // create CA CSR
   child_process.execFileSync('openssl', [
     'req',
@@ -53,8 +57,9 @@ createPrivateKey(configCertsCaKeyPem)
     '-extensions', 'v3_ca',
     '-key', configCertsCaKeyPem,
     '-out', configCertsCaCertPem,
+    '-set_serial', '1',
     '-sha384',
-    '-subj', configureSubject(certsSubjectConfig),
+    '-subj', subject,
     '-days', '3650']);
 
   var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
@@ -70,11 +75,13 @@ createPrivateKey(configCertsCaKeyPem)
     certificatePemContent: fs.readFileSync(configCertsCaCertPem).toString(),
     certificatePemFile: configCertsCaCertPem,
     privateKeyPemFile: configCertsCaKeyPem,
+    subject: subject,
     certificateMetadata: certText
   };
 
   fsExtra.writeJsonSync(configCertsCaConfigJson, config);
-});
+}
 
+configureCA();
 var configCertsClientDir: string = path.join(__dirname, '../config/certs/client');
 fsExtra.mkdirpSync(configCertsClientDir);

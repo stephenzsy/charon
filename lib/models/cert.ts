@@ -37,24 +37,30 @@ export class CertBundle {
   private _certificatePemContent: string;
   private _certificateMetadata: string;
   private _privateKeyPemFile: string;
+  private _certificateSubject: string;
 
   constructor(config: CertConfig) {
     this._certificatePemFile = config.certificatePemFile;
     this._certificatePemContent = config.certificatePemContent;
     this._certificateMetadata = config.certificateMetadata;
     this._privateKeyPemFile = config.privateKeyPemFile;
+    this._certificateSubject = config.subject;
   }
 
-  public get certificateMetadata(): string {
+  get certificateMetadata(): string {
     return this._certificateMetadata;
   }
 
-  public get certificatePemFile(): string {
+  get certificatePemFile(): string {
     return this._certificatePemFile;
   }
 
-  public get certificatePemContent(): string {
+  get certificatePemContent(): string {
     return this._certificatePemContent;
+  }
+
+  get certificateSubject(): string {
+    return this._certificateSubject;
   }
 
   protected get privateKeyPemFile(): string {

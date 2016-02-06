@@ -1,4 +1,5 @@
 export interface CertConfig {
+  subject: string;
   certificatePemContent: string;
   certificateMetadata: string;
   certificatePemFile: string;
