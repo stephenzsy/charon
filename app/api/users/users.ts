@@ -15,7 +15,7 @@ ListUsersRequest, ListUsersResult,
 DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
 import {User} from '../../../lib/models/users';
-import {Password} from '../../../lib/models/password';
+import {Password} from '../../../lib/models/passwords';
 
 import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
 import {RequestValidations} from '../../../lib/validations';

@@ -9,14 +9,14 @@ import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {CreateClientKeypairRequest, CreateClientKeypairResult} from '../../../models/certs';
-import {CertSubjectConfig, CertSubject} from '../../../lib/models/cert';
+import {CertSubjectConfig, CertSubject} from '../../../lib/models/certs';
 import {BadRequestError} from '../../../lib/models/errors';
 import * as CertsCa from '../../../lib/certs/ca';
 import {certsManager} from '../../../lib/certs/certs-manager';
 import * as CertsUtils from '../../../lib/certs/utils';
 
 const certsSubjectConfig: CertSubjectConfig = require('../../../config/init/certs-config.json');
-
+/*
 class CreateClientKeypairEnactor extends ActionEnactor<CreateClientKeypairRequest, CreateClientKeypairResult>{
   async enactAsync(req: CreateClientKeypairRequest): Promise<CreateClientKeypairResult> {
     // create private key
@@ -48,3 +48,4 @@ export module Handlers {
     enactor: new CreateClientKeypairEnactor()
   });
 }
+*/

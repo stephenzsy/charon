@@ -10,8 +10,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
 import * as Shared from './shared';
-import {CertSubjectConfig} from '../lib/models/cert';
-import {CertConfig} from '../lib/models/app-configs';
+import {CertConfig, CertSubjectConfig} from '../lib/models/certs';
 import {createPrivateKey, getSubject} from '../lib/certs/utils';
 
 var certsSubjectConfig: CertSubjectConfig = require('../config/init/certs-config.json');

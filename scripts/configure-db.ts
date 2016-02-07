@@ -9,9 +9,10 @@ const Sequelize = require('sequelize');
 
 import * as Q from 'q';
 import * as mysql from 'mysql';
+import Constants from '../lib/constants';
 import {DataAccessUser, UserInternal, UserInstance} from '../lib/db/users';
 import {DataAccessPassword} from '../lib/db/passwds';
-import {DataAccessCert, CertInternal, CertInstance, CertTypeStr} from '../lib/db/certs';
+import {DataAccessCert, CertInternal, CertInstance, CertTypeStr, CertStateStr} from '../lib/db/certs';
 import {caCertBundle} from '../lib/certs/ca';
 
 const charonDBName: string = 'charon';
@@ -24,10 +25,11 @@ var certDataModel = new DataAccessCert(charonSequelize, userDataModel).model;
 
 
 async function createCACert(): Promise<CertInstance> {
-  return certDataModel.create(<any>{
+  return certDataModel.create(<CertInternal>{
     type: CertTypeStr.CA,
     subject: caCertBundle.certificateSubject,
-    networkId: '00000000-0000-0000-0000-000000000000'
+    state: CertStateStr.Active,
+    networkId: Constants.UUID0
   });
 }
 

@@ -7,25 +7,35 @@ import {UserModel, UserInternal, UserInstance, Columns as UserColumns} from './u
 
 export module Columns {
   export const TYPE: string = 'type';
+  export const STATE: string = 'state';
+  export const NETWORK_ID: string = 'networkId';
   export const SUBJECT: string = 'subject';
   export const USER_ID: string = 'userId';
-  export const NETWORK_ID: string = 'networkId';
 }
 
 export module CertTypeStr {
   export const CA: string = 'CA';
+  export const Site: string = 'SITE';
   export const Server: string = 'SERVER';
-  export const Client: string = 'Client';
+  export const Client: string = 'CLIENT';
+}
+
+export module CertStateStr {
+  export const Pending: string = 'PENDING';
+  export const Active: string = 'ACTIVE';
 }
 
 export interface CertInternal extends CommonDataInternal {
   type: string;
+  state: string;
+  networkId: string;
   subject: string;
   user: UserInternal;
-  networkId: string;
 }
 
-export interface CertInstance extends Sequelize.Instance<CertInstance, CertInternal>, CertInternal { }
+export interface CertInstance extends Sequelize.Instance<CertInstance, CertInternal>, CertInternal {
+  setUser(user: UserInstance): Promise<CertInstance>;
+}
 
 export type CertModel = Sequelize.Model<CertInstance, CertInternal>;
 
@@ -43,15 +53,25 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
   protected createModelAttributes(): Sequelize.DefineAttributes {
     var attributes: Sequelize.DefineAttributes = {};
     attributes[Columns.TYPE] = {
-      type: Sequelize.ENUM([CertTypeStr.CA, CertTypeStr.Server, CertTypeStr.Client]),
+      type: Sequelize.ENUM([
+        CertTypeStr.CA,
+        CertTypeStr.Site,
+        CertTypeStr.Server,
+        CertTypeStr.Client]),
       allowNull: false
     };
-    attributes[Columns.SUBJECT] = {
-      type: Sequelize.STRING(1024),
+    attributes[Columns.STATE] = {
+      type: Sequelize.ENUM([
+        CertStateStr.Active,
+        CertStateStr.Pending]),
       allowNull: false
     };
     attributes[Columns.NETWORK_ID] = {
       type: Sequelize.UUID,
+      allowNull: false
+    };
+    attributes[Columns.SUBJECT] = {
+      type: Sequelize.STRING(1024),
       allowNull: false
     };
     return attributes;
@@ -65,7 +85,7 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
         indexes: [
           {
             unique: true,
-            fields: [Columns.USER_ID, Columns.NETWORK_ID]
+            fields: [Columns.TYPE, Columns.USER_ID, Columns.NETWORK_ID]
           }
         ]
       });

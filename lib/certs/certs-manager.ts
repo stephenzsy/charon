@@ -1,129 +1,83 @@
 ///<reference path="../../typings/mysql/mysql.d.ts"/>
 
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 
 import * as Q from 'q';
-import * as mysql from 'mysql';
+import {Cert, CertType} from '../models/certs';
+import {Network} from '../models/networks';
+import {User} from '../models/users';
 
 import * as Utils from './utils';
 import {createBase62Password} from '../secrets/utils';
 
-module CertState {
-  export const init: string = 'INIT';
-}
-
-export interface CertsTableConfig {
-  tableName: string;
-}
+const CertsConfigDir: string = path.resolve(__dirname, '../../config/certs');
+const ClientCertsConfigDir = path.join(CertsConfigDir, 'client');
+const ClientSiteConfigDir = path.join(CertsConfigDir, 'site');
+const ClientServerConfigDir = path.join(CertsConfigDir, 'server');
+const ClientCAConfigDir = path.join(CertsConfigDir, 'ca');
 
 export class CertsManager {
-  private dbConnectionPool: mysql.IPool;
-  private tableConfig: CertsTableConfig;
-  private clientCertsDir: string = path.resolve(__dirname, '../../config/certs/client');
-  private caCertsDir: string = path.resolve(__dirname, '../../config/certs/ca');
 
-  constructor(dbConnectionPool: mysql.IPool, certsTableConfig: CertsTableConfig) {
-    this.dbConnectionPool = dbConnectionPool;
-    this.tableConfig = certsTableConfig;
+  constructor() {
   }
 
-  public createClientKeypair(subject: string): Q.Promise<void> {
-    var serial: number;
-    var clientKeypairDir: string;
-    var clientPrivateKeyPath: string;
-    var clientCsrPath: string;
-    var clientCrtPath: string;
+  async createServerCert(subject: string, network: Network): Promise<string> {
+    return this.createCert(subject, network, 'server', 'server_cert', false);
+  }
+
+  private async createCert(subject: string, network: Network, prefix: string, extensions: string, createExportable: boolean): Promise<string> {
     var clientP12Path: string;
     var exportPassword: string;
+    var cert: Cert;
+    if (network) {
+      cert = await Cert.createPending(CertType.Server, subject, network, null);
+    } else {
+      cert = await Cert.createPending(CertType.Site, subject, null, null);
+    }
 
-    return this.acquireNewSerial()
-      .then((s: number) => {
-      serial = s;
-      return this.createClientKeypairDir(serial);
-    })
-      .then((dir: string) => {
-      clientKeypairDir = dir;
-      clientPrivateKeyPath = path.join(clientKeypairDir, 'client.key');
-      // creat private key
-      return Utils.createPrivateKey(clientPrivateKeyPath);
-    })
-      .then(() => {
-      // create csr
-      clientCsrPath = path.join(clientKeypairDir, 'client.csr');
-      return Utils.createCsr(clientPrivateKeyPath, subject, clientCsrPath);
-    })
-      .then(() => {
-      // sign certificate
-      clientCrtPath = path.join(clientKeypairDir, 'client.crt');
-      return Utils.signClientCertificate(
-        path.join(this.caCertsDir, 'ca.key'),
-        path.join(this.caCertsDir, 'ca.crt'),
-        serial,
-        clientCsrPath,
-        clientCrtPath);
-    })
-      .then(() => {
-      // create exportable p12 file
-      return createBase62Password(16);
-    }).then((password: string) => {
-      exportPassword = password;
-      clientP12Path = path.join(clientKeypairDir, 'client.p12');
-      console.log(exportPassword);
-      return Utils.exportPkcs12(
-        clientCrtPath,
-        clientPrivateKeyPath,
-        path.join(this.caCertsDir, 'ca.crt'),
-        exportPassword,
-        clientP12Path)
-    })
-      .then(() => {
-      return null;
-    }, (err) => {
-        console.error(err);
-        throw err;
-      });
-  }
-
-  private createClientKeypairDir(serial: number): Q.Promise<string> {
-    var dir: string = path.join(this.clientCertsDir, serial.toString());
-    return Q.nfcall(fs.mkdir, dir).then((): string => {
-      return dir;
-    });
-  }
-
-  private acquireNewSerial(): Q.Promise<number> {
-    return wrapConnection(this.dbConnectionPool, (connection: mysql.IConnection): Q.Promise<any> => {
-      return Q.ninvoke<any>(connection, 'query', 'INSERT INTO ' + this.tableConfig.tableName
-        + ' (state) VALUES (?)', [CertState.init]);
-    }).then((insertResults: any): number => {
-      if (!insertResults || !insertResults[0]) {
-        throw 'Mysql error';
-      }
-      return <number>insertResults[0].insertId;
-    });
+    var serial: number = cert.sequenceId;
+    var certsDir: string = path.join(ClientServerConfigDir, serial.toString());
+    fsExtra.mkdirpSync(certsDir);
+    // private key
+    var privateKeyPath: string = path.join(certsDir, prefix + '.key');
+    await Utils.createPrivateKey(privateKeyPath);
+    // csr
+    var csrPath: string = path.join(certsDir, prefix + '.csr');
+    await Utils.createCsr(privateKeyPath, subject, csrPath, extensions);
+    // certificate
+    var crtPath: string = path.join(certsDir, prefix + '.crt');
+    await Utils.signCertificate(
+      path.join(ClientCAConfigDir, 'ca.key'),
+      path.join(ClientCAConfigDir, 'ca.crt'),
+      serial,
+      csrPath,
+      crtPath);
+    return null;
+    /*
+        return Q.resolve<void>(null)
+          .then(() => {
+            // create exportable p12 file
+            return createBase62Password(16);
+          }).then((password: string) => {
+            exportPassword = password;
+            clientP12Path = path.join(clientKeypairDir, 'client.p12');
+            console.log(exportPassword);
+            return Utils.exportPkcs12(
+              clientCrtPath,
+              clientPrivateKeyPath,
+              path.join(this.caCertsDir, 'ca.crt'),
+              exportPassword,
+              clientP12Path)
+          })
+          .then(() => {
+            return null;
+          }, (err) => {
+            console.error(err);
+            throw err;
+          });*/
   }
 }
 
-function wrapConnection<T>(pool: mysql.IPool, wrapped: (conn: mysql.IConnection) => Q.Promise<T>): Q.Promise<T> {
-  var connection: mysql.IConnection = null;
-  return Q.ninvoke<mysql.IConnection>(pool, 'getConnection')
-    .then((conn: mysql.IConnection): Q.Promise<T>=> {
-    connection = conn;
-    return wrapped(connection);
-  })
-    .then((result: T): T => {
-    connection.release();
-    return result;
-  }, (err): any => {
-      connection.release();
-      throw err;
-    });
-}
-
-export var certsManager: CertsManager = new CertsManager(mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'charon',
-  connectionLimit: 10
-}), { tableName: 'certs' });
+export const certsManager: CertsManager = new CertsManager();

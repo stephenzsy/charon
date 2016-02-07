@@ -66,7 +66,7 @@ export class Password extends ModelInstance<PasswordInstance> {
       validTo: validTo.toDate(),
       networkId: network.id
     });
-    await instance.setUser(user.instance);
+    instance = await instance.setUser(user.instance);
     return new Password(instance);
   }
 

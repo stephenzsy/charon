@@ -22,4 +22,8 @@ export class ModelInstance<T extends CommonDataInternal>{
   get id(): string {
     return this.instance.uid;
   }
+
+  get sequenceId(): number {
+    return this.instance.id;
+  }
 }

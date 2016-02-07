@@ -4,8 +4,7 @@
 
 import * as Q from 'q';
 import * as express from 'express';
-import {CertBundle} from '../models/cert';
-import {CertConfig} from '../models/app-configs';
+import {CertBundle} from '../models/certs';
 
 export class CaCertBundle extends CertBundle {
 

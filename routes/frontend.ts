@@ -6,7 +6,6 @@ import * as path from 'path';
 import * as express from 'express';
 import {Handlers as AuthTokenHandlers} from '../app/api/auth/token';
 import {Handlers as CertsCaHandlers} from '../app/api/certs/ca';
-import {Handlers as ClientKeypairsHandlers} from '../app/api/certs/client-keypairs';
 import {Handlers as UsersHandlers} from '../app/api/users/users';
 import {Handlers as PasswordsHandlers} from '../app/api/secrets/passwords';
 import {Handlers as NetworkHandlers} from '../app/api/networks/networks';

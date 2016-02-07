@@ -13,7 +13,7 @@ import {CreateUserPasswordRequest, CreateUserPasswordResult, UserPasswordStatus,
   DeleteUserPasswordRequest} from '../../../models/secrets';
 import {User} from '../../../lib/models/users';
 import {Network} from '../../../lib/models/networks';
-import {Password} from '../../../lib/models/password';
+import {Password} from '../../../lib/models/passwords';
 import {resolveUser} from '../users/users';
 import {resolveNetwork} from '../networks/networks';
 

@@ -5,39 +5,67 @@ import * as child_process from 'child_process';
 import * as Q from 'q';
 import * as path from 'path';
 
-import {CertSubjectConfig} from '../../lib/models/cert';
+import {CertSubjectConfig} from '../../lib/models/certs';
 
-export async function createPrivateKey(keyOutputPath: string): Promise<void> {
-  return Q.nfcall<void>(child_process.execFile, 'openssl', ['ecparam',
-    '-out', keyOutputPath,
-    '-name', 'secp384r1',
-    '-genkey']);
+export function createPrivateKey(keyOutputPath: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    child_process.execFile('openssl', ['ecparam',
+      '-out', keyOutputPath,
+      '-name', 'secp384r1',
+      '-genkey'
+    ], (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
 }
 
-export function createCsr(privateKeyPath: string, subject: string, csrOutputPath): Q.Promise<void> {
-  return Q.nfcall<void>(child_process.execFile, 'openssl', ['req',
-    '-new',
-    '-nodes',
-    '-out', csrOutputPath,
-    '-key', privateKeyPath,
-    '-subj', subject]);
+export function createCsr(privateKeyPath: string, subject: string, csrOutputPath, extensions: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    child_process.execFile('openssl', ['req',
+      '-new',
+      '-nodes',
+      '-extensions', extensions,
+      '-out', csrOutputPath,
+      '-key', privateKeyPath,
+      '-subj', subject
+    ], (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
 }
 
-export function signClientCertificate(
+export function signCertificate(
   caPrivateKeyInputPath: string,
   caCertificateInputPath: string,
   serial: number,
   csrInputPath: string,
-  crtOutputPath: string): Q.Promise<void> {
-  return Q.nfcall<void>(child_process.execFile, 'openssl', ['x509',
-    '-req',
-    '-in', csrInputPath,
-    '-out', crtOutputPath,
-    '-set_serial', serial,
-    '-CAkey', caPrivateKeyInputPath,
-    '-sha384',
-    '-CA', caCertificateInputPath,
-    '-days', '365']);
+  crtOutputPath: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    child_process.execFile('openssl', ['x509',
+      '-req',
+      '-in', csrInputPath,
+      '-out', crtOutputPath,
+      '-set_serial', serial.toString(),
+      '-CAkey', caPrivateKeyInputPath,
+      '-sha384',
+      '-CA', caCertificateInputPath,
+      '-days', '365'
+    ], (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
 }
 
 export function exportPkcs12(
