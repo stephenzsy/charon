@@ -23,12 +23,11 @@ export function createPrivateKey(keyOutputPath: string): Promise<void> {
   });
 }
 
-export function createCsr(privateKeyPath: string, subject: string, csrOutputPath, extensions: string): Promise<void> {
+export function createCsr(privateKeyPath: string, subject: string, csrOutputPath): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     child_process.execFile('openssl', ['req',
       '-new',
       '-nodes',
-      '-extensions', extensions,
       '-out', csrOutputPath,
       '-key', privateKeyPath,
       '-subj', subject

@@ -89,7 +89,6 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
           }
         ]
       });
-
     model.belongsTo(this.userModel, { foreignKey: Columns.USER_ID, as: 'user' });
     return model;
   }

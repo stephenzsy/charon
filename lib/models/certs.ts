@@ -8,9 +8,9 @@ import {Network} from './networks';
 import {User} from './users';
 
 export interface CertConfig {
-  subject: string;
-  certificatePemContent: string;
-  certificateMetadata: string;
+  subject?: string;
+  certificatePemContent?: string;
+  certificateMetadata?: string;
   certificatePemFile: string;
   privateKeyPemFile: string;
 }
@@ -102,7 +102,7 @@ export class CertBundle {
     return this._certificateSubject;
   }
 
-  protected get privateKeyPemFile(): string {
+  get privateKeyPemFile(): string {
     return this._privateKeyPemFile;
   }
 }
@@ -129,6 +129,13 @@ function certTypeToStr(type: CertType): string {
 }
 
 export class Cert extends ModelInstance<CertInstance> {
+
+  async markAsActive(): Promise<Cert> {
+    this.instance.state = CertStateStr.Active;
+    await this.instance.save();
+    return this;
+  }
+
   static async createPending(type: CertType, subject: string, network: Network, user: User): Promise<Cert> {
     var instance: CertInstance = await CertModel.create(<CertInternal>{
       type: certTypeToStr(type),
@@ -140,5 +147,9 @@ export class Cert extends ModelInstance<CertInstance> {
       instance = await instance.setUser(user.instance);
     }
     return new Cert(instance);
+  }
+
+  static async clearAllServerCerts(): Promise<void> {
+    await CertModel.destroy({ where: { type: CertTypeStr.Server } });
   }
 }

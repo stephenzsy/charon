@@ -5,7 +5,7 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 
 import * as Q from 'q';
-import {Cert, CertType} from '../models/certs';
+import {Cert, CertType, CertBundle} from '../models/certs';
 import {Network} from '../models/networks';
 import {User} from '../models/users';
 
@@ -23,11 +23,15 @@ export class CertsManager {
   constructor() {
   }
 
-  async createServerCert(subject: string, network: Network): Promise<string> {
-    return this.createCert(subject, network, 'server', 'server_cert', false);
+  async clearAllServerCerts(): Promise<void> {
+    return Cert.clearAllServerCerts();
   }
 
-  private async createCert(subject: string, network: Network, prefix: string, extensions: string, createExportable: boolean): Promise<string> {
+  async createServerCert(subject: string, network: Network): Promise<CertBundle> {
+    return this.createCert(subject, network, 'server', false);
+  }
+
+  private async createCert(subject: string, network: Network, prefix: string, createExportable: boolean): Promise<CertBundle> {
     var clientP12Path: string;
     var exportPassword: string;
     var cert: Cert;
@@ -45,7 +49,7 @@ export class CertsManager {
     await Utils.createPrivateKey(privateKeyPath);
     // csr
     var csrPath: string = path.join(certsDir, prefix + '.csr');
-    await Utils.createCsr(privateKeyPath, subject, csrPath, extensions);
+    await Utils.createCsr(privateKeyPath, subject, csrPath);
     // certificate
     var crtPath: string = path.join(certsDir, prefix + '.crt');
     await Utils.signCertificate(
@@ -54,7 +58,11 @@ export class CertsManager {
       serial,
       csrPath,
       crtPath);
-    return null;
+    await cert.markAsActive();
+    return new CertBundle({
+      certificatePemFile: crtPath,
+      privateKeyPemFile: privateKeyPath
+    });
     /*
         return Q.resolve<void>(null)
           .then(() => {

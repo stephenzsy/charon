@@ -5,8 +5,10 @@ export interface NetworkMetadata {
 }
 
 export interface Network extends NetworkMetadata {
-  clientSecret: string;
-  dbName: string;
+  clientSecret?: string;
+  dbName?: string;
+  serverTlsCert?: string;
+  serverTlsPrivateKey?: string;
 }
 
 export type ListNetworksResult = NetworkMetadata[];

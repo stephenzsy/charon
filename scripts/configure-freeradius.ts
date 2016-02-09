@@ -8,6 +8,7 @@ import {Generator} from '../app/freeradius/models/common';
 import {ClientsConfig, ClientsConfigOptions} from '../app/freeradius/models/clients-config';
 import {ServerConfig} from '../app/freeradius/models/server-config';
 import {EapConfig} from '../app/freeradius/models/eap-config';
+import {caCertBundle} from '../lib/certs/ca';
 
 const networks: Network[] = require(path.join(Shared.ConfigDir, 'networks-config.json'));
 const ConfigSitesAvailableDir: string = path.join(Shared.ConfigFreeradiusDir, 'sites-available');
@@ -60,11 +61,17 @@ class Configurator {
   public configureEap(): string {
     var generator: Generator = new Generator();
     return networks.map(network => {
+      let tlsConfigName: string = 'tls-config-' + network.id;
       let config: EapConfig = new EapConfig({
         name: 'eap-' + network.id,
         tlsConfig: {
-          name: 'tls-' + network.id,
-          privateKeyFile: null // TODO
+          name: tlsConfigName,
+          privateKeyFile: network.serverTlsPrivateKey,
+          certificateFile: network.serverTlsCert,
+          caFile: caCertBundle.certificatePemFile
+        },
+        ttls: {
+          tls: tlsConfigName
         }
       });
       return generator.generate(config);
