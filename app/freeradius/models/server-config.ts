@@ -2,17 +2,20 @@ import * as uuid from 'node-uuid';
 import {Config, NamedConfig} from './common';
 
 export interface ListenConfigOption {
+  ipaddr: string;
   port: number;
-  clients: string;
+  clients?: string;
 }
 
 export class ListenConfig extends Config {
   constructor(opt: ListenConfigOption) {
     super('listen');
-    this
-      .addKeyedConfig('ipaddr', '*')
-      .addKeyedConfig('port', opt.port)
-      .addKeyedConfig('clients', opt.clients);
+    this.addKeyedConfig('type', 'auth');
+    this.addKeyedConfig('ipaddr', opt.ipaddr);
+    this.addKeyedConfig('port', opt.port);
+    if (opt.clients) {
+      this.addKeyedConfig('clients', opt.clients);
+    }
   }
 }
 
@@ -39,14 +42,25 @@ export class AuthorizeConfig extends Config {
   }
 }
 
+export class MschapAuthenticateConfig extends NamedConfig {
+  constructor(opt: {}) {
+    super('Auth-Type', 'MS-CHAP');
+    this.addConfig('mschap');
+  }
+}
+
 export interface AuthenticateConfigOption {
   eap: string;
+  mschap?: {};
 }
 
 export class AuthenticateConfig extends Config {
   constructor(opt: AuthenticateConfigOption) {
     super('authenticate');
     this.addConfig(opt.eap);
+    if (opt.mschap) {
+      this.addConfig(new MschapAuthenticateConfig(opt.mschap));
+    }
   }
 }
 

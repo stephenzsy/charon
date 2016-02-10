@@ -39,10 +39,11 @@ class Configurator {
   public configureServers(): string {
     var generator: Generator = new Generator();
     var base: number = 10000;
-    return networks.map(network => {
+    var outerServers: string = networks.map(network => {
       let config: ServerConfig = new ServerConfig({
         name: 'server-' + network.id,
         listen: {
+          ipaddr: '*',
           port: 812 + base,
           clients: 'clients-' + network.id
         },
@@ -56,14 +57,34 @@ class Configurator {
       base += 1000;
       return generator.generate(config);
     }).join("\n");
+    var innerServers: string = networks.map(network => {
+      let config: ServerConfig = new ServerConfig({
+        name: 'server-inner-' + network.id,
+        listen: {
+          port: 912 + base,
+          ipaddr: '127.0.0.1'
+        },
+        authorize: {
+          eap: 'eap-inner-' + network.id
+        },
+        authenticate: {
+          eap: 'eap-inner-' + network.id,
+          mschap: {}
+        }
+      });
+      base += 1000;
+      return generator.generate(config);
+    }).join("\n");
+    return outerServers + "\n" + innerServers;
   }
 
   public configureEap(): string {
     var generator: Generator = new Generator();
-    return networks.map(network => {
+    var outerEap: string = networks.map(network => {
       let tlsConfigName: string = 'tls-config-' + network.id;
       let config: EapConfig = new EapConfig({
         name: 'eap-' + network.id,
+        defaultEapType: 'ttls',
         tlsConfig: {
           name: tlsConfigName,
           privateKeyFile: network.serverTlsPrivateKey,
@@ -71,11 +92,24 @@ class Configurator {
           caFile: caCertBundle.certificatePemFile
         },
         ttls: {
-          tls: tlsConfigName
+          tls: tlsConfigName,
+          virtualServer: '"server-inner-' + network.id + '"'
         }
       });
       return generator.generate(config);
     }).join("\n");
+
+    var innerEap: string = networks.map(network => {
+      let tlsConfigName: string = 'tls-config-' + network.id;
+      let config: EapConfig = new EapConfig({
+        name: 'eap-inner-' + network.id,
+        defaultEapType: 'mschapv2',
+        mschapv2: {}
+      });
+      return generator.generate(config);
+    }).join("\n");
+
+    return outerEap + "\n" + innerEap;
   }
 
 }

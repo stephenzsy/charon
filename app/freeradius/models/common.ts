@@ -12,7 +12,9 @@ export class Config {
   }
 
   protected addKeyedConfig(key: string, value: ConfigValue): this {
-    this.config.push({ key: key, value: value });
+    if (value) {
+      this.config.push({ key: key, value: value });
+    }
     return this;
   }
 
