@@ -12,6 +12,9 @@ import * as fsExtra from 'fs-extra';
 import * as Shared from './shared';
 import {CertConfig, CertSubjectConfig} from '../lib/models/certs';
 import {createPrivateKey, getSubject} from '../lib/certs/utils';
+import {CertInternal, CertInstance} from '../lib/db/certs';
+import {caCertBundle} from '../lib/certs/ca';
+import {certsManager} from '../lib/certs/certs-manager';
 
 var certsSubjectConfig: CertSubjectConfig = require('../config/init/certs-config.json');
 
@@ -37,13 +40,25 @@ function configureSubject(config: CertSubjectConfig) {
   return getSubject(config);
 }
 
-var configCertsCaDir: string = path.join(__dirname, '../config/certs/ca');
+const configCertsCaDir: string = path.join(Shared.ConfigCertsDir, 'ca');
+const configCertsSiteDir: string = path.join(Shared.ConfigCertsDir, 'site');
+const configCertsServerDir: string = path.join(Shared.ConfigCertsDir, 'server');
+const configCertsClientDir: string = path.join(Shared.ConfigCertsDir, 'client');
+
 var configCertsCaKeyPem: string = path.join(configCertsCaDir, 'ca.key');
 var configCertsCaCertPem: string = path.join(configCertsCaDir, 'ca.crt');
 
-fsExtra.mkdirpSync(configCertsCaDir);
+async function createCACertEntry(): Promise<CertInstance> {
+  return db.CertModel.create(<CertInternal>{
+    type: CertTypeStr.CA,
+    subject: caCertBundle.certificateSubject,
+    state: CertStateStr.Active,
+    networkId: Constants.UUID0
+  });
+}
 
-async function configureCA() {
+
+async function configureCa() {
   // create CA private key
   await createPrivateKey(configCertsCaKeyPem);
 
@@ -81,6 +96,17 @@ async function configureCA() {
   fsExtra.writeJsonSync(configCertsCaConfigJson, config);
 }
 
-configureCA();
-var configCertsClientDir: string = path.join(__dirname, '../config/certs/client');
-fsExtra.mkdirpSync(configCertsClientDir);
+async function configureSite() {
+
+}
+
+async function configure() {
+  fsExtra.mkdirpSync(configCertsCaDir);
+  fsExtra.mkdirpSync(configCertsSiteDir);
+  fsExtra.mkdirpSync(configCertsServerDir);
+  fsExtra.mkdirpSync(configCertsClientDir);
+  await configureCA();
+  configureSite();
+}
+
+configure();
