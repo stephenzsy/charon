@@ -9,8 +9,7 @@ export interface ClientConfigOptions {
 export class ClientConfig extends NamedConfig {
   constructor(opt: ClientConfigOptions) {
     super('client', opt.name);
-    this.addKeyedConfig('ipv4addr', '*');
-    this.addKeyedConfig('ipv6addr', '::');
+    this.addKeyedConfig('ipaddr', '*');
     this.addKeyedConfig('secret', opt.secret);
   }
 }

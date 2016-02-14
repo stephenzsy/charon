@@ -28,6 +28,7 @@ export class AuthorizeEapConfig extends Config {
 
 export interface AuthorizeConfigOption {
   eap: string;
+  sql?: string;
 }
 
 export class AuthorizeConfig extends Config {
@@ -39,6 +40,9 @@ export class AuthorizeConfig extends Config {
       .addConfig(new AuthorizeEapConfig(opt.eap))
       .addConfig('expiration')
       .addConfig('logintime');
+    if (opt.sql) {
+      this.addConfig(opt.sql);
+    }
   }
 }
 

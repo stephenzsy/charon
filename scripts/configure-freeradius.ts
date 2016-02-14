@@ -8,6 +8,7 @@ import {Generator} from '../app/freeradius/models/common';
 import {ClientsConfig, ClientsConfigOptions} from '../app/freeradius/models/clients-config';
 import {ServerConfig} from '../app/freeradius/models/server-config';
 import {EapConfig} from '../app/freeradius/models/eap-config';
+import {SqlConfig} from '../app/freeradius/models/sql-config';
 import {caCertBundle} from '../lib/certs/ca';
 
 const networks: Network[] = require(path.join(Shared.ConfigDir, 'networks-config.json'));
@@ -21,6 +22,7 @@ class Configurator {
     fsExtra.writeFileSync(path.join(Shared.ConfigFreeradiusDir, 'clients.conf'), this.configureClients());
     fsExtra.writeFileSync(path.join(ConfigSitesAvailableDir, 'servers'), this.configureServers());
     fsExtra.writeFileSync(path.join(ModsAvailableDir, 'eaps'), this.configureEap());
+    fsExtra.writeFileSync(path.join(ModsAvailableDir, 'sqls'), this.configureSql());
   }
 
   private configureClients(): string {
@@ -65,7 +67,8 @@ class Configurator {
           ipaddr: '127.0.0.1'
         },
         authorize: {
-          eap: 'eap-inner-' + network.id
+          eap: 'eap-inner-' + network.id,
+          sql: 'sql-' + network.id
         },
         authenticate: {
           eap: 'eap-inner-' + network.id,
@@ -112,10 +115,22 @@ class Configurator {
     return outerEap + "\n" + innerEap;
   }
 
+
+  configureSql(): string {
+    var generator: Generator = new Generator();
+    var sql: string = networks.map(network => {
+      let config: SqlConfig = new SqlConfig({
+        name: 'sql-' + network.id
+      });
+      return generator.generate(config);
+    }).join("\n");
+
+    return sql;
+  }
 }
 
 var configurator: Configurator = new Configurator();
-console.log(configurator.configureEap());
+//console.log(configurator.configureEap());
 //process.exit(0);
 
 fsExtra.mkdirpSync(Shared.ConfigFreeradiusDir);
