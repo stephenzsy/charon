@@ -11,7 +11,9 @@ class ListNetworksEnactor extends SyncActionEnactor<void, ListNetworksResult> {
     return Network.all.map((network: Network): NetworkMetadata => {
       return {
         id: network.id,
-        name: network.name
+        name: network.name,
+        clientSecret: network.clientSecret,
+        radiusPort: network.radiusPort
       };
     });
   }

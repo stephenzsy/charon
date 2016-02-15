@@ -3,13 +3,14 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
 import {Network} from '../models/networks';
+import certsManager from '../lib/certs/certs-manager';
+
 import * as Shared from './shared';
 import {Generator} from '../app/freeradius/models/common';
 import {ClientsConfig, ClientsConfigOptions} from '../app/freeradius/models/clients-config';
-import {ServerConfig} from '../app/freeradius/models/server-config';
+import {ServerConfig, ServerConfigOption} from '../app/freeradius/models/server-config';
 import {EapConfig} from '../app/freeradius/models/eap-config';
-import {SqlConfig} from '../app/freeradius/models/sql-config';
-import {caCertBundle} from '../lib/certs/ca';
+import {SqlConfig, SqlConfigOption} from '../app/freeradius/models/sql-config';
 
 const networks: Network[] = require(path.join(Shared.ConfigDir, 'networks-config.json'));
 const ConfigSitesAvailableDir: string = path.join(Shared.ConfigFreeradiusDir, 'sites-available');
@@ -40,13 +41,12 @@ class Configurator {
 
   public configureServers(): string {
     var generator: Generator = new Generator();
-    var base: number = 10000;
     var outerServers: string = networks.map(network => {
       let config: ServerConfig = new ServerConfig({
         name: 'server-' + network.id,
         listen: {
           ipaddr: '*',
-          port: 812 + base,
+          port: network.radiusPort,
           clients: 'clients-' + network.id
         },
         authorize: {
@@ -54,35 +54,42 @@ class Configurator {
         },
         authenticate: {
           eap: 'eap-' + network.id
+        },
+        accounting: {
+          sql: 'sql-' + network.id
         }
       });
-      base += 1000;
       return generator.generate(config);
     }).join("\n");
     var innerServers: string = networks.map(network => {
-      let config: ServerConfig = new ServerConfig({
-        name: 'server-inner-' + network.id,
-        listen: {
-          port: 912 + base,
-          ipaddr: '127.0.0.1'
-        },
-        authorize: {
-          eap: 'eap-inner-' + network.id,
-          sql: 'sql-' + network.id
-        },
-        authenticate: {
-          eap: 'eap-inner-' + network.id,
-          mschap: {}
-        }
-      });
-      base += 1000;
-      return generator.generate(config);
+      var sql: string = 'sql-' + network.id;
+      let opt: ServerConfigOption =
+        {
+          name: 'server-inner-' + network.id,
+          listen: {
+            port: network.radiusPort + 100,
+            ipaddr: '127.0.0.1'
+          },
+          authorize: {
+            eap: 'eap-inner-' + network.id,
+            sql: sql
+          },
+          authenticate: {
+            eap: 'eap-inner-' + network.id,
+            mschap: {}
+          },
+          accounting: {
+            sql: sql
+          }
+        };
+      return generator.generate(new ServerConfig(opt));
     }).join("\n");
     return outerServers + "\n" + innerServers;
   }
 
   public configureEap(): string {
     var generator: Generator = new Generator();
+    var caCertBundle = certsManager.getCaCertBundle();
     var outerEap: string = networks.map(network => {
       let tlsConfigName: string = 'tls-config-' + network.id;
       let config: EapConfig = new EapConfig({
@@ -115,17 +122,24 @@ class Configurator {
     return outerEap + "\n" + innerEap;
   }
 
-
   configureSql(): string {
     var generator: Generator = new Generator();
-    var sql: string = networks.map(network => {
-      let config: SqlConfig = new SqlConfig({
-        name: 'sql-' + network.id
-      });
-      return generator.generate(config);
+    var firstSql: string = null;
+    var sqls: string = networks.map(network => {
+      var sqlName: string = 'sql-' + network.id;
+      let opt: SqlConfigOption = {
+        name: sqlName,
+        authcheckTable: network.radcheckTableName
+      };
+      if (firstSql) {
+        opt.pool = firstSql;
+      } else {
+        firstSql = sqlName;
+      }
+      return generator.generate(new SqlConfig(opt));
     }).join("\n");
 
-    return sql;
+    return sqls;
   }
 }
 

@@ -5,8 +5,6 @@ import * as child_process from 'child_process';
 import * as Q from 'q';
 import * as path from 'path';
 
-import {CertSubjectConfig} from '../../lib/models/certs';
-
 export function createPrivateKey(keyOutputPath: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     child_process.execFile('openssl', ['ecparam',
@@ -81,30 +79,4 @@ export function exportPkcs12(
     '-out', p12OutputPath,
     '-CAfile', caCertInputPath,
     '-passout', 'pass:' + passout]);
-}
-
-export function getSubject(config: CertSubjectConfig): string {
-  var subj: string = '';
-  if (config.country) {
-    subj += '/C=' + config.country.trim();
-  }
-  if (config.stateOrProviceName) {
-    subj += '/ST=' + config.stateOrProviceName.trim()
-  }
-  if (config.localityName) {
-    subj += '/L=' + config.localityName.trim();
-  }
-  if (config.organizationName) {
-    subj += '/O=' + config.organizationName.trim();
-  }
-  if (config.organizationUnitName) {
-    subj += '/OU=' + config.organizationUnitName.trim();
-  }
-  if (config.commonName) {
-    subj += '/CN=' + config.commonName.trim();
-  }
-  if (config.emailAddress) {
-    subj += '/emailAddress=' + config.emailAddress.trim();
-  }
-  return subj;
 }

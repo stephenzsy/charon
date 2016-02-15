@@ -18,9 +18,11 @@ export interface PasswordInternal extends CommonDataInternal {
   networkId: string;
   password: string;
   validTo: Date;
+  active: boolean;
 }
 
 export interface PasswordInstance extends Sequelize.Instance<PasswordInstance, PasswordInternal>, PasswordInternal {
+  getUser(): Promise<UserInstance>;
   setUser(user: UserInstance): Promise<PasswordInstance>;
 }
 

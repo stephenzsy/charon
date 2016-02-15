@@ -4,9 +4,11 @@ import * as sequelize from 'sequelize';
 import * as moment from 'moment';
 const _moment: moment.MomentStatic = require('moment');
 
-import {UserModel, PasswordModel} from '../db/index';
+import {UserModel, PasswordModel, getRadcheckModel} from '../db/index';
 import {Columns as CommonColumns} from '../db/common';
 import {PasswordInternal, PasswordInstance, Columns as PasswordColumns} from '../db/passwds';
+import {UserInstance} from '../db/users';
+
 import {ModelInstance} from './common';
 import {User} from './users';
 import {Network} from './networks';
@@ -26,8 +28,39 @@ export class Password extends ModelInstance<PasswordInstance> {
     return this.instance.networkId;
   }
 
+  get network(): Network {
+    return Network.findById(this.networkId);
+  }
+
   delete(): Promise<void> {
     return this.instance.destroy();
+  }
+
+  async getUser(): Promise<User> {
+    var userInstance: UserInstance = await this.instance.getUser();
+    return new User(userInstance);
+  }
+
+  async activate(): Promise<boolean> {
+    if (this.validTo <= new Date()) {
+      return false;
+    }
+    var model = getRadcheckModel(this.network.radcheckTableName);
+    var user: User = await this.getUser();
+    await model.destroy({
+      where: {
+        username: user.username
+      }
+    });
+    await model.create({
+      username: user.username,
+      attribute: 'Cleartext-Password',
+      op: ':=',
+      value: this.instance.password
+    });
+    this.instance.active = true;
+    await this.instance.save();
+    return true;
   }
 
   static async deleteById(id: string): Promise<number> {

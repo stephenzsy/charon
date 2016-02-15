@@ -23,24 +23,22 @@ import {RequestValidations} from '../../../lib/validations';
 class CreateUserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest, CreateUserPasswordResult>{
   async enactAsync(req: CreateUserPasswordRequest): Promise<CreateUserPasswordResult> {
     var network: Network = resolveNetwork(req.networkId);
-    return resolveUser(req.userId)
-      .then((user: User): Promise<Password> => {
-        return Password.create(user, network);
-      })
-      .then((password: Password): CreateUserPasswordResult => {
-        var timestamp: Date = new Date();
-        var status: string = UserPasswordStatus.Active;
-        if (timestamp > password.validTo) {
-          status = UserPasswordStatus.Expired;
-        }
-        return {
-          id: password.id,
-          userId: req.userId,
-          networkId: req.networkId,
-          validTo: password.validTo,
-          password: password.password
-        };
-      });
+    var user: User = await resolveUser(req.userId);
+    var password: Password = await Password.create(user, network);
+    var timestamp: Date = new Date();
+    var status: string = UserPasswordStatus.Pending;
+    if (timestamp > password.validTo) {
+      status = UserPasswordStatus.Expired;
+    }
+    var activated: boolean = await password.activate();
+    return {
+      id: password.id,
+      userId: req.userId,
+      networkId: req.networkId,
+      validTo: password.validTo,
+      password: password.password
+    };
+
   }
 }
 

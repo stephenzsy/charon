@@ -4,6 +4,7 @@ export interface CreateUserPasswordRequest {
 }
 
 export module UserPasswordStatus {
+  export const Pending: string = 'pending';
   export const Active: string = 'active';
   export const Expired: string = 'expired';
   export const Revoked: string = 'revoked';

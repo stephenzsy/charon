@@ -117,7 +117,9 @@ class UserController {
       var ns: NetworkScope = {
         id: network.id,
         name: network.name,
-        hasPassword: false
+        hasPassword: false,
+        clientSecret: network.clientSecret,
+        radiusPort: network.radiusPort
       };
       dict[network.id] = ns;
       networkScopes.push(ns);

@@ -10,15 +10,16 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
 import * as Shared from './shared';
-import {CertConfig, CertSubjectConfig} from '../lib/models/certs';
-import {createPrivateKey, getSubject} from '../lib/certs/utils';
+import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
+import {CertConfig, CertSubject} from '../lib/models/certs';
+import {createPrivateKey} from '../lib/certs/utils';
+import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
-import {caCertBundle} from '../lib/certs/ca';
-import {certsManager} from '../lib/certs/certs-manager';
+import certsManager from '../lib/certs/certs-manager';
 
-var certsSubjectConfig: CertSubjectConfig = require('../config/init/certs-config.json');
+const initCertsConfig: InitCertsConfig = require(path.join(Shared.ConfigDir, 'init', 'certs-config.json'));
 
-function configureSubject(config: CertSubjectConfig) {
+function configureSubject(config: CaCertSubjectConfig): CertSubject {
   if (!config) {
     throw 'No configuraiton'
   }
@@ -37,7 +38,7 @@ function configureSubject(config: CertSubjectConfig) {
   if (!config.commonName) {
     throw 'Common name required for cert subject';
   }
-  return getSubject(config);
+  return new CertSubject(config, config);
 }
 
 const configCertsCaDir: string = path.join(Shared.ConfigCertsDir, 'ca');
@@ -48,65 +49,17 @@ const configCertsClientDir: string = path.join(Shared.ConfigCertsDir, 'client');
 var configCertsCaKeyPem: string = path.join(configCertsCaDir, 'ca.key');
 var configCertsCaCertPem: string = path.join(configCertsCaDir, 'ca.crt');
 
-async function createCACertEntry(): Promise<CertInstance> {
-  return db.CertModel.create(<CertInternal>{
-    type: CertTypeStr.CA,
-    subject: caCertBundle.certificateSubject,
-    state: CertStateStr.Active,
-    networkId: Constants.UUID0
-  });
-}
-
-
-async function configureCa() {
-  // create CA private key
-  await createPrivateKey(configCertsCaKeyPem);
-
-  var subject: string = configureSubject(certsSubjectConfig);
-  // create CA CSR
-  child_process.execFileSync('openssl', [
-    'req',
-    '-new',
-    '-x509',
-    '-extensions', 'v3_ca',
-    '-key', configCertsCaKeyPem,
-    '-out', configCertsCaCertPem,
-    '-set_serial', '1',
-    '-sha384',
-    '-subj', subject,
-    '-days', '3650']);
-
-  var configCertsCaConfigJson: string = path.join(configCertsCaDir, 'ca.json');
-
-  var certText: string = child_process.execFileSync('openssl', [
-    'x509',
-    '-in', configCertsCaCertPem,
-    '-text',
-    '-noout']).toString();
-
-  // generate json config
-  var config: CertConfig = {
-    certificatePemContent: fs.readFileSync(configCertsCaCertPem).toString(),
-    certificatePemFile: configCertsCaCertPem,
-    privateKeyPemFile: configCertsCaKeyPem,
-    subject: subject,
-    certificateMetadata: certText
-  };
-
-  fsExtra.writeJsonSync(configCertsCaConfigJson, config);
-}
-
-async function configureSite() {
-
-}
-
 async function configure() {
-  fsExtra.mkdirpSync(configCertsCaDir);
-  fsExtra.mkdirpSync(configCertsSiteDir);
-  fsExtra.mkdirpSync(configCertsServerDir);
-  fsExtra.mkdirpSync(configCertsClientDir);
-  await configureCA();
-  configureSite();
+  var caSubject = configureSubject(initCertsConfig.ca);
+  await certsManager.createCaCert(caSubject.subject);
+  var siteSubject = new CertSubject(caSubject, initCertsConfig.site);
+  await certsManager.createSiteCert(siteSubject.subject);
+  charonSequelize.close();
 }
 
-configure();
+try {
+  configure();
+
+} catch (err) {
+  console.error(err);
+}

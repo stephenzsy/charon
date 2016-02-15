@@ -10,7 +10,11 @@ export interface CommonDataInternal {
   uid: string;
 }
 
-export abstract class DataAccessCommon<T extends Sequelize.Model<any, any>> {
+export interface DataAccess<T extends Sequelize.Model<any, any>> {
+  model: T
+}
+
+export abstract class DataAccessCommon<T extends Sequelize.Model<any, any>> implements DataAccess<T>{
   protected sqlize: Sequelize.Sequelize;
   private _model: T = null;
 
@@ -18,10 +22,10 @@ export abstract class DataAccessCommon<T extends Sequelize.Model<any, any>> {
     this.sqlize = sqlize;
   }
 
-  protected  createModelAttributes(): Sequelize.DefineAttributes {
+  protected createModelAttributes(): Sequelize.DefineAttributes {
     var attributes: Sequelize.DefineAttributes = {};
     attributes[Columns.ID] = {
-      type: Sequelize.INTEGER,
+      type: Sequelize.INTEGER.UNSIGNED,
       primaryKey: true,
       autoIncrement: true
     };

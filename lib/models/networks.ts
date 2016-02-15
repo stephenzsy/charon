@@ -22,8 +22,12 @@ export class Network {
     return this.config.clientSecret;
   }
 
-  get dbName(): string {
-    return this.config.dbName;
+  get radcheckTableName(): string {
+    return this.config.radcheckTableName;
+  }
+
+  get radiusPort(): number {
+    return this.config.radiusPort;
   }
 
   static get all(): Network[] {

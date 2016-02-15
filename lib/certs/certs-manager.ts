@@ -18,8 +18,11 @@ const ClientCertsConfigDir = path.join(CertsConfigDir, 'client');
 const SiteCertsConfigDir = path.join(CertsConfigDir, 'site');
 const ServerCertsConfigDir = path.join(CertsConfigDir, 'server');
 const CaCertsConfigDir = path.join(CertsConfigDir, 'ca');
+const CaConfigJson: string = path.join(CaCertsConfigDir, 'ca.json');
 
 export class CertsManager {
+
+  private caCertConfig: CertConfig;
 
   constructor() {
   }
@@ -39,8 +42,6 @@ export class CertsManager {
   async createCaCert(subject: string): Promise<CertBundle> {
     var certBundle: CertBundle = await this.createCert(subject, CertType.CA, CaCertsConfigDir, null, 'ca', false);
 
-    var configCertsCaConfigJson: string = path.join(CaCertsConfigDir, 'ca.json');
-
     var certText: string = child_process.execFileSync('openssl', [
       'x509',
       '-in', certBundle.certificatePemFile,
@@ -48,23 +49,29 @@ export class CertsManager {
       '-noout']).toString();
 
     // generate json config
-    var config: CertConfig = {
+    this.caCertConfig = {
       certificatePemFile: certBundle.certificatePemFile,
       privateKeyPemFile: certBundle.privateKeyPemFile,
       subject: subject,
       certificateMetadata: certText
     };
 
-    fsExtra.writeJsonSync(configCertsCaConfigJson, config);
+    fsExtra.writeJsonSync(CaConfigJson, this.caCertConfig);
     return certBundle;
   }
 
-  private async createCert(subject: string, certType: CertType, certsDir: string, network: Network, prefix: string, createExportable: boolean): Promise<CertBundle> {
+  private async createCert(subject: string, certType: CertType, certsRootDir: string, network: Network, prefix: string, createExportable: boolean): Promise<CertBundle> {
     var cert: Cert;
     cert = await Cert.createPending(certType, subject, network, null);
 
     var serial: number = cert.sequenceId;
-    var certsDir: string = path.join(certsDir, serial.toString());
+    var certsDir: string;
+    if (certType === CertType.CA) {
+      certsDir = certsRootDir;
+    }
+    else {
+      certsDir = path.join(certsRootDir, serial.toString());
+    }
     fsExtra.mkdirpSync(certsDir);
     // private key
     var privateKeyPath: string = path.join(certsDir, prefix + '.key');
@@ -122,6 +129,14 @@ export class CertsManager {
             throw err;
           });*/
   }
+
+  getCaCertBundle(): CertBundle {
+    if (!this.caCertConfig) {
+      this.caCertConfig = require(CaConfigJson);
+    }
+    return new CertBundle(this.caCertConfig);
+  }
 }
 
 export const certsManager: CertsManager = new CertsManager();
+export default certsManager;

@@ -1,5 +1,6 @@
 'use strict';
 
+import {CertSubjectConfig, CaCertSubjectConfig} from '../../models/init';
 import Constants from '../constants';
 import {UserModel, PasswordModel, CertModel} from '../db/index';
 import {ModelInstance} from './common';
@@ -14,16 +15,6 @@ export interface CertConfig {
   privateKeyPemFile: string;
 }
 
-export interface CertSubjectConfig {
-  country: string;
-  stateOrProviceName: string;
-  localityName: string;
-  organizationName: string;
-  organizationUnitName: string;
-  commonName: string;
-  emailAddress: string;
-}
-
 export class CertSubject {
   country: string;
   stateOrProviceName: string;
@@ -33,12 +24,12 @@ export class CertSubject {
   commonName: string;
   emailAddress: string;
 
-  constructor(config: CertSubjectConfig) {
-    this.country = config.country;
-    this.stateOrProviceName = config.stateOrProviceName;
-    this.localityName = config.localityName;
-    this.organizationName = config.organizationName;
-    this.organizationUnitName = config.organizationUnitName;
+  constructor(ca: CaCertSubjectConfig, config?: CertSubjectConfig) {
+    this.country = ca.country;
+    this.stateOrProviceName = ca.stateOrProviceName;
+    this.localityName = ca.localityName;
+    this.organizationName = ca.organizationName;
+    this.organizationUnitName = ca.organizationUnitName;
     this.commonName = config.commonName;
     this.emailAddress = config.emailAddress;
   }
@@ -72,14 +63,12 @@ export class CertSubject {
 
 export class CertBundle {
   private _certificatePemFile: string;
-  private _certificatePemContent: string;
   private _certificateMetadata: string;
   private _privateKeyPemFile: string;
   private _certificateSubject: string;
 
   constructor(config: CertConfig) {
     this._certificatePemFile = config.certificatePemFile;
-    this._certificatePemContent = config.certificatePemContent;
     this._certificateMetadata = config.certificateMetadata;
     this._privateKeyPemFile = config.privateKeyPemFile;
     this._certificateSubject = config.subject;
@@ -91,10 +80,6 @@ export class CertBundle {
 
   get certificatePemFile(): string {
     return this._certificatePemFile;
-  }
-
-  get certificatePemContent(): string {
-    return this._certificatePemContent;
   }
 
   get certificateSubject(): string {

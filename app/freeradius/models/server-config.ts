@@ -77,11 +77,23 @@ export class PreacctConfig extends Config {
   }
 }
 
+export interface AccountingConfigOption {
+  sql: string;
+}
+
+export class AccountingConfig extends Config {
+  constructor(opt: AccountingConfigOption) {
+    super('accounting');
+    this.addConfig('detail')
+  }
+}
+
 export interface ServerConfigOption {
   name: string;
   listen: ListenConfigOption;
   authorize: AuthorizeConfigOption;
   authenticate: AuthenticateConfigOption;
+  accounting: AccountingConfigOption;
 }
 
 export class ServerConfig extends NamedConfig {
@@ -92,5 +104,6 @@ export class ServerConfig extends NamedConfig {
       .addConfig(new AuthorizeConfig(opt.authorize))
       .addConfig(new AuthenticateConfig(opt.authenticate))
       .addConfig(new PreacctConfig());
+    this.addConfig(new AccountingConfig(opt.accounting));
   }
 }

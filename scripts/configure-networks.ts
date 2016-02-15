@@ -23,35 +23,44 @@ import {CertBundle} from '../lib/models/certs';
 
 const NetworksConfig: NetworkConfig[] = require('../config/init/networks-config.json');
 
-import {CertConfig, CertSubject, CertSubjectConfig} from '../lib/models/certs';
-const certsSubjectConfig: CertSubjectConfig = require('../config/init/certs-config.json');
+import {CertConfig, CertSubject} from '../lib/models/certs';
+import {InitCertsConfig} from '../models/init';
+const initCertsConfig: InitCertsConfig = require(path.join(Shared.ConfigInitDir, 'certs-config.json'));
 
 var counter: number = 0;
-
+var portBase: number = 10000;
 async function configureNetwork(config: NetworkConfig): Promise<INetwork> {
-  var dbName: string = 'rad' + (++counter);
-
-  // create db
-  await db.charonSequelize.query('DROP DATABASE IF EXISTS ' + dbName, { type: sequelize.QueryTypes.RAW });
-  await db.charonSequelize.query('CREATE DATABASE ' + dbName, { type: sequelize.QueryTypes.RAW });
+  var radcheckTableName: string = 'radcheck' + (++counter);
+  var radcheckModel = db.getRadcheckModel(radcheckTableName);
+  try {
+    await radcheckModel.sync({ force: true });
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
   var password: string = await createBase62Password(128);
   var network: Network = new Network({
     id: UUID.v4(),
     name: config.name,
     clientSecret: password,
-    dbName: dbName
+    radiusPort: portBase + 812,
+    radcheckTableName: radcheckTableName
   });
+  portBase += 1000;
+
   // create cert
-  var certSubject: CertSubject = new CertSubject(certsSubjectConfig);
-  certSubject.commonName = config.certCommonName;
-  certSubject.emailAddress = config.certEmail;
+  var certSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
+    commonName: config.certCommonName,
+    emailAddress: config.certEmail
+  });
   var bundle: CertBundle = await certsManager.createServerCert(certSubject.subject, network);
 
   return {
     id: network.id,
     name: network.name,
     clientSecret: network.clientSecret,
-    dbName: network.dbName,
+    radcheckTableName: network.radcheckTableName,
+    radiusPort: network.radiusPort,
     serverTlsCert: bundle.certificatePemFile,
     serverTlsPrivateKey: bundle.privateKeyPemFile
   };
@@ -60,6 +69,7 @@ async function configureNetwork(config: NetworkConfig): Promise<INetwork> {
 async function configure() {
   await certsManager.clearAllServerCerts();
   var networks: INetwork[] = await Promise.all(NetworksConfig.map(configureNetwork));
+  db.radiusSequelize.close();
   db.charonSequelize.close();
   Shared.writeJsonSync(path.join(Shared.ConfigDir, 'networks-config.json'), networks);
 }
