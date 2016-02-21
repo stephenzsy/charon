@@ -13,5 +13,6 @@ export interface CaCertSubjectConfig extends CertSubjectConfig {
 
 export interface InitCertsConfig {
   ca: CaCertSubjectConfig;
-  site: CertSubjectConfig;
+  siteCa: CertSubjectConfig;
+  siteServer: CertSubjectConfig;
 }

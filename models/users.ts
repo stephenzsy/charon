@@ -8,9 +8,15 @@ export interface User {
   createdAt: Date;
 }
 
+export module UserType {
+  export const Login: string = 'login';
+  export const Network: string = 'network';
+}
+
 export interface CreateUserRequest {
   username: string;
   email: string;
+  type: string;
 }
 
 export interface CreateUserResult {

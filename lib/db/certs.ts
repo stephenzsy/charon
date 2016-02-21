@@ -10,7 +10,7 @@ export module Columns {
   export const STATE: string = 'state';
   export const NETWORK_ID: string = 'networkId';
   export const SUBJECT: string = 'subject';
-  export const USER_ID: string = 'userId';
+  export const UserId: string = 'userId';
 }
 
 export module CertTypeStr {
@@ -84,12 +84,19 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
         timestamps: false,
         indexes: [
           {
-            unique: true,
-            fields: [Columns.TYPE, Columns.USER_ID, Columns.NETWORK_ID]
+            fields: [Columns.TYPE, Columns.UserId, Columns.NETWORK_ID]
           }
         ]
       });
-    model.belongsTo(this.userModel, { foreignKey: Columns.USER_ID, as: 'user' });
+    model.belongsTo(this.userModel, {
+      foreignKey: Columns.UserId,
+      as: 'user',
+      onDelete: 'CASCADE'
+    });
+    this.userModel.hasMany(model, {
+      foreignKey: Columns.UserId,
+      as: 'certs'
+    });
     return model;
   }
 }

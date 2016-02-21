@@ -9,12 +9,12 @@ import * as validator from 'validator';
 
 import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import { User as IUser,
-CreateUserRequest, CreateUserResult,
-GetUserRequest, GetUserResult,
-ListUsersRequest, ListUsersResult,
-DeleteUserRequest, DeleteUserResult} from '../../../models/users';
+  CreateUserRequest, CreateUserResult, UserType,
+  GetUserRequest, GetUserResult,
+  ListUsersRequest, ListUsersResult,
+  DeleteUserRequest, DeleteUserResult} from '../../../models/users';
 import {CollectionQueryResult} from '../../../lib/models/common';
-import {User} from '../../../lib/models/users';
+import User, * as Users from '../../../lib/models/users';
 import {Password} from '../../../lib/models/passwords';
 
 import {BadRequestError, ConflictResourceError, ResourceNotFoundError} from '../../../lib/models/errors';
@@ -37,35 +37,42 @@ class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> 
   async enactAsync(req: ListUsersRequest): Promise<ListUsersResult> {
     return User.findAndCountAllActive({ limit: req.limit })
       .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
-      return {
-        count: result.count,
-        items: result.items.map((user: User): IUser => {
-          return {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            createdAt: user.createdAt
-          };
-        })
-      };
-    });
+        return {
+          count: result.count,
+          items: result.items.map((user: User): IUser => {
+            return {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              createdAt: user.createdAt
+            };
+          })
+        };
+      });
   }
 }
 
 class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResult>{
   async enactAsync(req: CreateUserRequest): Promise<CreateUserResult> {
-    return User.findByUserName(req.username)
+    return User.findByUsername(req.username, Users.UserType.Network)
       .then((user: User): Promise<User> => {
-      if (user) {
-        throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
-      }
-      return User.create(req);
-    }).then((user: User): CreateUserResult => {
-      return {
-        id: user.id,
-        createdAt: user.createdAt
-      };
-    });
+        if (user) {
+          throw new ConflictResourceError('User with name "' + req.username + '" already exists.');
+        }
+        var userType: Users.UserType = null;
+        switch (req.type) {
+          case UserType.Login:
+            userType = Users.UserType.Login;
+          case UserType.Network:
+            userType = Users.UserType.Network;
+        }
+        return User.create(userType, req.username, req.email);
+      }).then((user: User): CreateUserResult => {
+        return {
+          id: user.id,
+          createdAt: user.createdAt
+        };
+      });
   }
 }
 
@@ -73,13 +80,13 @@ class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResul
   enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
     return resolveUser(req.id)
       .then((user: User): Q.Promise<void> => {
-      return user.delete();
-    })
+        return user.delete();
+      })
       .then((): DeleteUserResult => {
-      return {
-        deletedAt: new Date()
-      }
-    });
+        return {
+          deletedAt: new Date()
+        }
+      });
   }
 }
 
@@ -102,11 +109,11 @@ class GetUserEnactor extends ActionEnactor<GetUserRequest, GetUserResult> {
 export async function resolveUser(userId: string): Promise<User> {
   return User.findById(userId)
     .then((user: User): User => {
-    if (!user) {
-      throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
-    }
-    return user;
-  });
+      if (!user) {
+        throw new ResourceNotFoundError('User with ID: ' + userId + ' does not exist');
+      }
+      return user;
+    });
 }
 
 export module Handlers {
@@ -122,9 +129,16 @@ export module Handlers {
       if (!validator.isAlphanumeric(username)) {
         throw new BadRequestError('Name must be alpha numeric');
       }
+
+      var type: string = req.body['type'];
+      RequestValidations.validateIsLength(type, 'type', 1, 256);
+      if (!validator.isIn(type, [UserType.Login, UserType.Network])) {
+        throw new BadRequestError('Type must be one of ["' + [UserType.Login, UserType.Network].join('","') + '"]');
+      }
       return {
         username: username,
-        email: email
+        email: email,
+        type: type
       };
     },
     enactor: new CreateUserEnactor()

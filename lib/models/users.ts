@@ -4,13 +4,15 @@ import * as Q from 'q';
 var _Q = require('q');
 
 import {UserModel} from '../db/index';
+import {CertTypeStr, CertInstance} from '../db/certs';
 import {ModelInstance, CollectionQueryResult} from './common';
+import {UserInternal, UserInstance, UserTypeStr} from '../db/users';
+import {Network} from './networks';
 
-import {UserInternal, UserInstance, UserContext} from '../db/users';
-
-export enum UserState {
-  Active,
-  Deleted
+export enum UserType {
+  Login,
+  Network,
+  System
 };
 
 export class User extends ModelInstance<UserInstance> {
@@ -30,13 +32,33 @@ export class User extends ModelInstance<UserInstance> {
     return this.instance.updatedAt;
   }
 
+  async getCaCertSerial(network: Network): Promise<number> {
+    var whereClause = {
+      type: CertTypeStr.CA
+    };
+    if (network) {
+      whereClause['networkId'] = network.id;
+    }
+    var certs: CertInstance[] = await this.instance.getCerts({
+      where: whereClause
+    });
+    if (certs.length != 1) {
+      throw 'No CA or more than 1 certs found'
+    }
+    return certs[0].id;
+  }
+
   delete(): Q.Promise<void> {
     return _Q(this.instance.destroy());
   }
 
   // static methods
-  static async create(userContext: UserContext): Promise<User> {
-    var instance: UserInstance = await UserModel.create(<UserInternal>userContext);
+  static async create(type: UserType, username: string, email: string): Promise<User> {
+    var instance: UserInstance = await UserModel.create(<UserInternal>{
+      username: username,
+      email: email,
+      type: User.typeToStr(type)
+    });
     return new User(instance);
   }
 
@@ -48,8 +70,13 @@ export class User extends ModelInstance<UserInstance> {
     return null;
   }
 
-  static async findByUserName(name: string): Promise<User> {
-    var instance: UserInstance = await UserModel.findOne({ where: { username: name } });
+  static async findByUsername(name: string, type: UserType): Promise<User> {
+    var instance: UserInstance = await UserModel.findOne({
+      where: {
+        username: name,
+        type: User.typeToStr(type)
+      }
+    });
     if (instance) {
       return new User(instance);
     }
@@ -63,14 +90,28 @@ export class User extends ModelInstance<UserInstance> {
       limit: opt.limit
     }))
       .then((result: { rows: UserInstance[], count: number }): CollectionQueryResult<User, number> => {
-      var items: User[] = [];
-      result.rows.forEach((instance: UserInstance) => {
-        items.push(new User(instance));
-      });
-      return {
-        count: result.count,
-        items: items
-      };
-    })
+        var items: User[] = [];
+        result.rows.forEach((instance: UserInstance) => {
+          items.push(new User(instance));
+        });
+        return {
+          count: result.count,
+          items: items
+        };
+      })
+  }
+
+  private static typeToStr(type: UserType): string {
+    switch (type) {
+      case UserType.Login:
+        return UserTypeStr.Login;
+      case UserType.Network:
+        return UserTypeStr.Network;
+      case UserType.System:
+        return UserTypeStr.System;
+    }
+    return UserTypeStr.Unknown;
   }
 }
+
+export default User;

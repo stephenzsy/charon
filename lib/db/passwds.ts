@@ -14,7 +14,6 @@ export module Columns {
 }
 
 export interface PasswordInternal extends CommonDataInternal {
-  user: UserInternal;
   networkId: string;
   password: string;
   validTo: Date;

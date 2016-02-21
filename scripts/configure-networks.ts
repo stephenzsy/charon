@@ -20,6 +20,7 @@ import {NetworkConfig} from '../lib/config/networks';
 import {createBase62Password} from '../lib/secrets/utils';
 import {certsManager} from '../lib/certs/certs-manager';
 import {CertBundle} from '../lib/models/certs';
+import User, * as Users from '../lib/models/users';
 
 const NetworksConfig: NetworkConfig[] = require('../config/init/networks-config.json');
 
@@ -29,15 +30,12 @@ const initCertsConfig: InitCertsConfig = require(path.join(Shared.ConfigInitDir,
 
 var counter: number = 0;
 var portBase: number = 10000;
-async function configureNetwork(config: NetworkConfig): Promise<INetwork> {
+async function configureNetwork(config: NetworkConfig, networksUser: User, rootUser: User): Promise<INetwork> {
   var radcheckTableName: string = 'radcheck' + (++counter);
   var radcheckModel = db.getRadcheckModel(radcheckTableName);
-  try {
-    await radcheckModel.sync({ force: true });
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+
+  await radcheckModel.sync({ force: true });
+
   var password: string = await createBase62Password(128);
   var network: Network = new Network({
     id: UUID.v4(),
@@ -48,12 +46,19 @@ async function configureNetwork(config: NetworkConfig): Promise<INetwork> {
   });
   portBase += 1000;
 
-  // create cert
-  var certSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
+  // create CA cert
+  var caCertSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
+    commonName: config.certCommonName + " CA",
+    emailAddress: config.certEmail
+  });
+  await certsManager.createCaCert(caCertSubject.subject, networksUser, network, rootUser);
+
+  // create server cert
+  var serverCertSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
     commonName: config.certCommonName,
     emailAddress: config.certEmail
   });
-  var bundle: CertBundle = await certsManager.createServerCert(certSubject.subject, network);
+  var bundle: CertBundle = await certsManager.createNetworkServerCert(serverCertSubject.subject, networksUser, network);
 
   return {
     id: network.id,
@@ -67,11 +72,21 @@ async function configureNetwork(config: NetworkConfig): Promise<INetwork> {
 }
 
 async function configure() {
-  await certsManager.clearAllServerCerts();
-  var networks: INetwork[] = await Promise.all(NetworksConfig.map(configureNetwork));
-  db.radiusSequelize.close();
-  db.charonSequelize.close();
-  Shared.writeJsonSync(path.join(Shared.ConfigDir, 'networks-config.json'), networks);
+  try {
+    var rootUser: User = await User.findByUsername('root', Users.UserType.System);
+    var networksUser: User = await User.findByUsername('networks', Users.UserType.System);
+    if (networksUser) {
+      networksUser.delete();
+    }
+    networksUser = await User.create(Users.UserType.System, 'networks', 'networks@system');
+    var networks: INetwork[] = await Promise.all(NetworksConfig.map(config => configureNetwork(config, networksUser, rootUser)));
+    db.radiusSequelize.close();
+    db.charonSequelize.close();
+    Shared.writeJsonSync(path.join(Shared.ConfigDir, 'networks-config.json'), networks);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }
 
 try {

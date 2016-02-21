@@ -24,7 +24,7 @@ export class CertSubject {
   commonName: string;
   emailAddress: string;
 
-  constructor(ca: CaCertSubjectConfig, config?: CertSubjectConfig) {
+  constructor(ca: CaCertSubjectConfig, config: CertSubjectConfig = ca) {
     this.country = ca.country;
     this.stateOrProviceName = ca.stateOrProviceName;
     this.localityName = ca.localityName;
@@ -127,9 +127,7 @@ export class Cert extends ModelInstance<CertInstance> {
       networkId: network ? network.id : Constants.UUID0,
       subject: subject
     });
-    if (user) {
-      instance = await instance.setUser(user.instance);
-    }
+    instance = await instance.setUser(user.instance);
     return new Cert(instance);
   }
 

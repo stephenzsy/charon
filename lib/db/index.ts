@@ -7,12 +7,14 @@ import * as UserModels from './users';
 import * as PasswordModels from './passwds';
 import * as CertModels from './certs';
 import * as RadcheckModels from './radcheck';
+import * as PermissionModels from './permissions';
 
 export const charonSequelize: Sequelize.Sequelize = new _Sequelize('charon', 'root');
 
 export const UserModel: UserModels.UserModel = new UserModels.DataAccessUser(charonSequelize).model;
 export const PasswordModel: PasswordModels.PasswordModel = new PasswordModels.DataAccessPassword(charonSequelize, UserModel).model;
 export const CertModel: CertModels.CertModel = new CertModels.DataAccessCert(charonSequelize, UserModel).model;
+export const PermissionModel: PermissionModels.PermissionModel = new PermissionModels.DataAccessPermission(charonSequelize, UserModel).model;
 
 export const radiusSequelize: Sequelize.Sequelize = new _Sequelize('radius', 'root');
 const radcheckModels: { [tableName: string]: RadcheckModels.RadcheckModel } = {};

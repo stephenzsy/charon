@@ -44,18 +44,35 @@ export function signCertificate(
   caCertificateInputPath: string,
   serial: number,
   csrInputPath: string,
-  crtOutputPath: string): Promise<void> {
+  crtOutputPath: string,
+  isCa: boolean = false): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    child_process.execFile('openssl', ['x509',
-      '-req',
-      '-in', csrInputPath,
-      '-out', crtOutputPath,
-      '-set_serial', serial.toString(),
-      '-CAkey', caPrivateKeyInputPath,
-      '-sha384',
-      '-CA', caCertificateInputPath,
-      '-days', '365'
-    ], (err, stdout, stderr) => {
+    var x509Params: string[];
+    if (isCa) {
+      x509Params = ['x509',
+        '-req',
+        '-in', csrInputPath,
+        '-out', crtOutputPath,
+        '-extensions', 'v3_intermediate_ca',
+        '-set_serial', serial.toString(),
+        '-CAkey', caPrivateKeyInputPath,
+        '-sha384',
+        '-CA', caCertificateInputPath,
+        '-days', '3650'
+      ];
+    } else {
+      x509Params = ['x509',
+        '-req',
+        '-in', csrInputPath,
+        '-out', crtOutputPath,
+        '-set_serial', serial.toString(),
+        '-CAkey', caPrivateKeyInputPath,
+        '-sha384',
+        '-CA', caCertificateInputPath,
+        '-days', '365'
+      ];
+    }
+    child_process.execFile('openssl', x509Params, (err, stdout, stderr) => {
       if (err) {
         reject(err);
       } else {

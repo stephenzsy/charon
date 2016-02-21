@@ -18,6 +18,7 @@ async function configure() {
     await db.UserModel.sync();
     await db.PasswordModel.sync();
     await db.CertModel.sync();
+    await db.PermissionModel.sync();
     db.charonSequelize.close();
   } catch (e) {
     console.error(e);
