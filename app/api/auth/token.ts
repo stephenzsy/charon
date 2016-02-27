@@ -11,12 +11,14 @@ import * as moment from 'moment';
 const _moment: moment.MomentStatic = require('moment');
 
 import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
-import {AuthTokenConfig, TokenContext} from '../../../lib/models/app-configs';
+import {TokenContext} from '../../../lib/models/app-configs';
+import {AuthTokenConfig} from '../../../lib/config/config';
 import {TokenScope} from '../../../models/common';
 import {GetTokenRequest, GetTokenResult} from '../../../models/auth';
 import {BadRequestError} from '../../../lib/models/errors';
+import AppConfig from '../../../lib/config/config';
 
-var tokenConfig: AuthTokenConfig = require('../../../config/auth-token.json');
+var tokenConfig: AuthTokenConfig = AppConfig.authTokenConfig;
 
 export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetTokenResult>{
   enactSync(req: GetTokenRequest): GetTokenResult {

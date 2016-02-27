@@ -12,7 +12,7 @@
       "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
     },
     "node/node.d.ts": {
-      "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
+      "commit": "163a4277199c3d896d9efffe24ea84c85f55c8ac"
     },
     "mime/mime.d.ts": {
       "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
@@ -24,7 +24,7 @@
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
     },
     "fs-extra/fs-extra.d.ts": {
-      "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
+      "commit": "163a4277199c3d896d9efffe24ea84c85f55c8ac"
     },
     "angularjs/angular-resource.d.ts": {
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"

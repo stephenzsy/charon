@@ -4,14 +4,28 @@
 import * as child_process from 'child_process';
 import * as Q from 'q';
 import * as path from 'path';
+import * as fsExtra from 'fs-extra';
+import {Constants as AppConfigConstants} from '../config/config'
 
 export function createPrivateKey(keyOutputPath: string): Promise<void> {
+  return execFile('openssl', ['ecparam',
+    '-out', keyOutputPath,
+    '-name', 'secp384r1',
+    '-genkey'
+  ]);
+}
+
+export function createCsr(privateKeyPath: string, subject: string, csrOutputPath): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    child_process.execFile('openssl', ['ecparam',
-      '-out', keyOutputPath,
-      '-name', 'secp384r1',
-      '-genkey'
-    ], (err, stdout, stderr) => {
+    var params: string[] = ['req',
+      '-new',
+      '-sha384',
+      '-nodes',
+      '-out', csrOutputPath,
+      '-key', privateKeyPath,
+      '-subj', subject
+    ];
+    child_process.execFile('openssl', params, (err, stdout, stderr) => {
       if (err) {
         reject(err);
       } else {
@@ -21,15 +35,33 @@ export function createPrivateKey(keyOutputPath: string): Promise<void> {
   });
 }
 
-export function createCsr(privateKeyPath: string, subject: string, csrOutputPath): Promise<void> {
+export function signIntermediateCa(
+  caBundleDir: string,
+  caPrivateKeyInputPath: string,
+  caCertificateInputPath: string,
+  serial: number,
+  csrInputPath: string,
+  certOutputDir: string,
+  days: number): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    child_process.execFile('openssl', ['req',
-      '-new',
-      '-nodes',
-      '-out', csrOutputPath,
-      '-key', privateKeyPath,
-      '-subj', subject
-    ], (err, stdout, stderr) => {
+    var params: string[] = ['ca',
+      '-batch',
+      '-in', csrInputPath,
+      '-outdir', certOutputDir,
+      '-md', 'sha384',
+      '-config', AppConfigConstants.CertsCnfRootCa,
+      '-extensions', 'v3_ca',
+      '-notext',
+      '-keyfile', caPrivateKeyInputPath,
+      '-cert', caCertificateInputPath,
+      '-days', days.toString()
+    ];
+
+    console.log(params.join(" "));
+    console.log(caBundleDir);
+    child_process.execFile('openssl', params, {
+      cwd: caBundleDir
+    }, (err, stdout, stderr) => {
       if (err) {
         reject(err);
       } else {
@@ -45,34 +77,19 @@ export function signCertificate(
   serial: number,
   csrInputPath: string,
   crtOutputPath: string,
-  isCa: boolean = false): Promise<void> {
+  days: number): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    var x509Params: string[];
-    if (isCa) {
-      x509Params = ['x509',
-        '-req',
-        '-in', csrInputPath,
-        '-out', crtOutputPath,
-        '-extensions', 'v3_intermediate_ca',
-        '-set_serial', serial.toString(),
-        '-CAkey', caPrivateKeyInputPath,
-        '-sha384',
-        '-CA', caCertificateInputPath,
-        '-days', '3650'
-      ];
-    } else {
-      x509Params = ['x509',
-        '-req',
-        '-in', csrInputPath,
-        '-out', crtOutputPath,
-        '-set_serial', serial.toString(),
-        '-CAkey', caPrivateKeyInputPath,
-        '-sha384',
-        '-CA', caCertificateInputPath,
-        '-days', '365'
-      ];
-    }
-    child_process.execFile('openssl', x509Params, (err, stdout, stderr) => {
+    var params: string[] = ['x509',
+      '-req',
+      '-in', csrInputPath,
+      '-out', crtOutputPath,
+      '-set_serial', serial.toString(),
+      '-CAkey', caPrivateKeyInputPath,
+      '-sha384',
+      '-CA', caCertificateInputPath,
+      '-days', days.toString()
+    ];
+    child_process.execFile('openssl', params, (err, stdout, stderr) => {
       if (err) {
         reject(err);
       } else {
@@ -80,6 +97,80 @@ export function signCertificate(
       }
     });
   });
+}
+
+async function execFile(command: string, args?: string[]): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    child_process.execFile(command, args, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+export async function writeFile(path: string, content: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fsExtra.writeFile(path, content, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+export async function appendFile(path: string, content: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fsExtra.appendFile(path, content, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+export async function readFile(path: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    fsExtra.readFile(path, null, (err, data: string) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+    });
+  });
+}
+
+export async function rename(src: string, dst: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fsExtra.rename(src, dst, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+export async function createRootCaCert(privateKeyPath: string, certificatePath: string, serial: number, subject: string): Promise<void> {
+  return execFile('openssl', [
+    'req',
+    '-new',
+    '-x509',
+    '-extensions', 'v3_ca',
+    '-set_serial', serial.toString(),
+    '-key', privateKeyPath,
+    '-out', certificatePath,
+    '-sha384',
+    '-subj', subject,
+    '-days', '3650']);
 }
 
 export function exportPkcs12(

@@ -1,12 +1,13 @@
 ///<reference path="../../typings/sequelize/sequelize.d.ts"/>
 
-import {Network as INetwork} from '../../models/networks';
-const NetworksConfig: INetwork[] = require('../../config/networks-config.json');
+import AppConfig, {NetworkInternal} from '../config/config';
 
 export class Network {
-  private config: INetwork;
+  private config: NetworkInternal;
+  private static _allNetworks: Network[];
+  private static _networksMap: { [id: string]: Network };
 
-  constructor(config: INetwork) {
+  constructor(config: NetworkInternal) {
     this.config = config;
   }
 
@@ -30,18 +31,26 @@ export class Network {
     return this.config.radiusPort;
   }
 
-  static get all(): Network[] {
-    return allNetworks;
+  static all(): Network[] {
+    if (!Network._allNetworks) {
+      Network.loadAllNetworks();
+    }
+    return Network._allNetworks;
   }
 
   static findById(id: string): Network {
-    return networksMap[id];
+    if (!Network._networksMap) {
+      Network.loadAllNetworks();
+    }
+    return Network._networksMap[id];
+  }
+
+  private static loadAllNetworks() {
+    Network._networksMap = {};
+    Network._allNetworks = AppConfig.networksConfig.map((config: NetworkInternal): Network => {
+      var network: Network = new Network(config);
+      Network._networksMap[network.id] = network;
+      return network;
+    });
   }
 }
-
-const networksMap: { [id: string]: Network } = {}
-const allNetworks: Network[] = NetworksConfig.map((config: INetwork): Network => {
-  var network: Network = new Network(config);
-  networksMap[network.id] = network;
-  return network;
-});

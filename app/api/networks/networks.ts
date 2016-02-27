@@ -3,12 +3,12 @@ import * as validator from 'validator';
 
 import {SyncActionEnactor, HandlerUtils} from '../../../lib/event/event-handler';
 import {Network} from '../../../lib/models/networks';
-import {NetworkMetadata, ListNetworksResult} from '../../../models/networks';
+import {Network as INetwork, ListNetworksResult} from '../../../models/networks';
 import {ResourceNotFoundError} from '../../../lib/models/errors';
 
 class ListNetworksEnactor extends SyncActionEnactor<void, ListNetworksResult> {
   public enactSync(req: void): ListNetworksResult {
-    return Network.all.map((network: Network): NetworkMetadata => {
+    return Network.all().map((network: Network): INetwork => {
       return {
         id: network.id,
         name: network.name,

@@ -2,32 +2,28 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
-import {Network} from '../models/networks';
-import certsManager from '../lib/certs/certs-manager';
-
-import * as Shared from './shared';
 import {Generator} from '../app/freeradius/models/common';
 import {ClientsConfig, ClientsConfigOptions} from '../app/freeradius/models/clients-config';
 import {ServerConfig, ServerConfigOption} from '../app/freeradius/models/server-config';
 import {EapConfig} from '../app/freeradius/models/eap-config';
 import {SqlConfig, SqlConfigOption} from '../app/freeradius/models/sql-config';
+import AppConfig, {Constants as ConfigConstants, NetworkInternal} from '../lib/config/config';
 
-const networks: Network[] = require(path.join(Shared.ConfigDir, 'networks-config.json'));
-const ConfigSitesAvailableDir: string = path.join(Shared.ConfigFreeradiusDir, 'sites-available');
-const ModsAvailableDir: string = path.join(Shared.ConfigFreeradiusDir, 'mods-available');
+const ConfigSitesAvailableDir: string = path.join(ConfigConstants.FreeradiusDir, 'sites-available');
+const ModsAvailableDir: string = path.join(ConfigConstants.FreeradiusDir, 'mods-available');
 
 class Configurator {
   private generator: Generator = new Generator();
 
   configure() {
-    fsExtra.writeFileSync(path.join(Shared.ConfigFreeradiusDir, 'clients.conf'), this.configureClients());
+    fsExtra.writeFileSync(path.join(ConfigConstants.FreeradiusDir, 'clients.conf'), this.configureClients());
     fsExtra.writeFileSync(path.join(ConfigSitesAvailableDir, 'servers'), this.configureServers());
     fsExtra.writeFileSync(path.join(ModsAvailableDir, 'eaps'), this.configureEap());
     fsExtra.writeFileSync(path.join(ModsAvailableDir, 'sqls'), this.configureSql());
   }
 
   private configureClients(): string {
-    return networks.map(network => {
+    return AppConfig.networksConfig.map(network => {
       let clientsOpt: ClientsConfigOptions = {
         name: 'clients-' + network.id,
         clients: [{
@@ -41,7 +37,7 @@ class Configurator {
 
   public configureServers(): string {
     var generator: Generator = new Generator();
-    var outerServers: string = networks.map(network => {
+    var outerServers: string = AppConfig.networksConfig.map(network => {
       let config: ServerConfig = new ServerConfig({
         name: 'server-' + network.id,
         listen: {
@@ -61,7 +57,7 @@ class Configurator {
       });
       return generator.generate(config);
     }).join("\n");
-    var innerServers: string = networks.map(network => {
+    var innerServers: string = AppConfig.networksConfig.map(network => {
       var sql: string = 'sql-' + network.id;
       let opt: ServerConfigOption =
         {
@@ -89,8 +85,7 @@ class Configurator {
 
   public configureEap(): string {
     var generator: Generator = new Generator();
-    var caCertBundle = certsManager.getCaCertBundle();
-    var outerEap: string = networks.map(network => {
+    var outerEap: string = AppConfig.networksConfig.map(network => {
       let tlsConfigName: string = 'tls-config-' + network.id;
       let config: EapConfig = new EapConfig({
         name: 'eap-' + network.id,
@@ -99,7 +94,7 @@ class Configurator {
           name: tlsConfigName,
           privateKeyFile: network.serverTlsPrivateKey,
           certificateFile: network.serverTlsCert,
-          caFile: caCertBundle.certificatePemFile
+          caFile: network.serverTlsCa
         },
         ttls: {
           tls: tlsConfigName,
@@ -109,7 +104,7 @@ class Configurator {
       return generator.generate(config);
     }).join("\n");
 
-    var innerEap: string = networks.map(network => {
+    var innerEap: string = AppConfig.networksConfig.map(network => {
       let tlsConfigName: string = 'tls-config-' + network.id;
       let config: EapConfig = new EapConfig({
         name: 'eap-inner-' + network.id,
@@ -125,7 +120,7 @@ class Configurator {
   configureSql(): string {
     var generator: Generator = new Generator();
     var firstSql: string = null;
-    var sqls: string = networks.map(network => {
+    var sqls: string = AppConfig.networksConfig.map(network => {
       var sqlName: string = 'sql-' + network.id;
       let opt: SqlConfigOption = {
         name: sqlName,
@@ -147,7 +142,7 @@ var configurator: Configurator = new Configurator();
 //console.log(configurator.configureEap());
 //process.exit(0);
 
-fsExtra.mkdirpSync(Shared.ConfigFreeradiusDir);
+fsExtra.mkdirpSync(ConfigConstants.FreeradiusDir);
 fsExtra.mkdirpSync(ConfigSitesAvailableDir);
 fsExtra.mkdirpSync(ModsAvailableDir);
 configurator.configure();

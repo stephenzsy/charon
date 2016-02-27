@@ -8,11 +8,17 @@ import {CertInstance, CertInternal, CertTypeStr, CertStateStr} from '../db/certs
 import {Network} from './networks';
 import {User} from './users';
 
-export interface CertConfig {
-  subject?: string;
-  certificateMetadata?: string;
-  certificatePemFile: string;
-  privateKeyPemFile: string;
+export interface CertBundle {
+  certificateBody: string;
+  privateKey: string;
+  certificateChain: string;
+}
+
+export interface CertFileBundle {
+  bundleDirectory: string;
+  certificateFile: string;
+  privateKeyFile: string;
+  certificateChainFile: string;
 }
 
 export class CertSubject {
@@ -61,36 +67,6 @@ export class CertSubject {
   }
 }
 
-export class CertBundle {
-  private _certificatePemFile: string;
-  private _certificateMetadata: string;
-  private _privateKeyPemFile: string;
-  private _certificateSubject: string;
-
-  constructor(config: CertConfig) {
-    this._certificatePemFile = config.certificatePemFile;
-    this._certificateMetadata = config.certificateMetadata;
-    this._privateKeyPemFile = config.privateKeyPemFile;
-    this._certificateSubject = config.subject;
-  }
-
-  get certificateMetadata(): string {
-    return this._certificateMetadata;
-  }
-
-  get certificatePemFile(): string {
-    return this._certificatePemFile;
-  }
-
-  get certificateSubject(): string {
-    return this._certificateSubject;
-  }
-
-  get privateKeyPemFile(): string {
-    return this._privateKeyPemFile;
-  }
-}
-
 export enum CertType {
   CA,
   Site,
@@ -113,6 +89,14 @@ function certTypeToStr(type: CertType): string {
 }
 
 export class Cert extends ModelInstance<CertInstance> {
+
+  static async findBySerial(serial: number): Promise<Cert> {
+    var instance: CertInstance = await CertModel.findById(serial);
+    if (instance) {
+      return new Cert(instance);
+    }
+    return null;
+  }
 
   async markAsActive(): Promise<Cert> {
     this.instance.state = CertStateStr.Active;

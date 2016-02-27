@@ -6,12 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as fsExtra from 'fs-extra';
-import * as command from 'commander';
+import AppConfig, {AuthTokenConfig, Constants as ConfigConstants} from '../lib/config/config';
 
-import {AuthTokenConfig} from '../lib/models/app-configs';
-
-var configDir: string = path.join(__dirname, '../config');
-var configTokenCertsDir: string = path.join(configDir, 'certs', 'auth');
+var configTokenCertsDir: string = path.join(ConfigConstants.ConfigDir, 'auth-token');
 fsExtra.mkdirpSync(configTokenCertsDir);
 
 var ecParamPem: string = path.join(configTokenCertsDir, 'secp384r1.pem');
@@ -28,6 +25,4 @@ var config: AuthTokenConfig = {
   privateKey: fs.readFileSync(ecPrivateKeyPem).toString(),
   publicKey: fs.readFileSync(ecPublicKeyPem).toString()
 };
-var configFile: string = path.join(configDir, 'auth-token.json');
-
-fsExtra.writeJsonSync(configFile, config);
+AppConfig.saveAuthTokenConfig(config);

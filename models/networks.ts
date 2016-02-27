@@ -1,15 +1,9 @@
 
-export interface NetworkMetadata {
+export interface Network {
   id: string;
   name: string;
   clientSecret: string;
   radiusPort: number;
 }
 
-export interface Network extends NetworkMetadata {
-  radcheckTableName?: string;
-  serverTlsCert?: string;
-  serverTlsPrivateKey?: string;
-}
-
-export type ListNetworksResult = NetworkMetadata[];
+export type ListNetworksResult = Network[];

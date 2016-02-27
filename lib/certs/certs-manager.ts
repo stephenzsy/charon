@@ -5,125 +5,115 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import * as child_process from 'child_process';
 
+import {Constants as AppConfigConstants} from '../config/config';
 import * as Q from 'q';
-import {Cert, CertType, CertBundle, CertConfig} from '../models/certs';
+import {Cert, CertType, CertBundle, CertFileBundle} from '../models/certs';
 import {Network} from '../models/networks';
 import User from '../models/users';
 
 import * as Utils from './utils';
 import {createBase62Password} from '../secrets/utils';
 
-const CertsConfigDir: string = path.resolve(__dirname, '../../config/certs');
-const ClientCertsConfigDir = path.join(CertsConfigDir, 'client');
-const SiteCertsConfigDir = path.join(CertsConfigDir, 'site');
-const ServerCertsConfigDir = path.join(CertsConfigDir, 'server');
-const CaCertsConfigDir = path.join(CertsConfigDir, 'ca');
-const SiteConfigJson: string = path.join(SiteCertsConfigDir, 'site.json');
-const CaConfigJson: string = path.join(CaCertsConfigDir, 'ca.json');
+export interface CreatePendingCertResult {
+  bundle: CertFileBundle;
+  cert: Cert;
+  serial: number;
+}
 
 export class CertsManager {
-
-  private caCertConfig: CertConfig;
-
-  constructor() {
+  async createNetworkServerCert(subject: string, user: User, network: Network): Promise<CertFileBundle> {
+    return this.createCert(subject, CertType.Server, user, network, 'server', false, user, false, true);
   }
 
-  async clearAllServerCerts(): Promise<void> {
-    return Cert.clearAllServerCerts();
+  async createSiteCert(subject: string, user: User): Promise<CertFileBundle> {
+    var bundle: CertFileBundle = await this.createCert(subject, CertType.Site, user, null, 'site', false, user, true, false);
+    await this.saveCertBundleConfig(path.join(AppConfigConstants.ConfigCertsDir, 'site.json'), bundle);
+    return bundle;
   }
-
-  async createNetworkServerCert(subject: string, user: User, network: Network): Promise<CertBundle> {
-    return this.createCert(subject, CertType.Server, ServerCertsConfigDir, user, network, 'server', false, user);
-  }
-
-  async createSiteCert(subject: string, user: User): Promise<CertBundle> {
-    var certBundle = await this.createCert(subject, CertType.Site, SiteCertsConfigDir, user, null, 'site', false, user);
-
-    // generate json config
-    var certConfig: CertConfig = {
-      certificatePemFile: certBundle.certificatePemFile,
-      privateKeyPemFile: certBundle.privateKeyPemFile
-    };
-
-    fsExtra.writeJsonSync(SiteConfigJson, certConfig);
-    return certBundle;
-  }
-
-  async createCaCert(subject: string, user: User, network: Network, signingUser: User): Promise<CertBundle> {
-    var certBundle = await this.createCert(subject, CertType.CA, CaCertsConfigDir, user, network, 'ca', false, signingUser);
-
-    if (!signingUser) {
-      var certConfig: CertConfig = {
-        certificatePemFile: certBundle.certificatePemFile,
-        privateKeyPemFile: certBundle.privateKeyPemFile
-      };
-
-      fsExtra.writeJsonSync(CaConfigJson, certConfig);
+  /*
+    async createCaCert(subject: string, user: User, network: Network, signingUser: User): Promise<CertFileBundle> {
+      return this.createCert(subject, CertType.CA, user, network, 'ca', false, signingUser);
     }
-    return certBundle;
-  }
-
-  private async createCert(subject: string, certType: CertType, certsRootDir:
-    string, user: User, network: Network, prefix: string,
-    createExportable: boolean,
-    signingUser: User): Promise<CertBundle> {
-    var cert: Cert;
-    cert = await Cert.createPending(certType, subject, network, user);
-
+  */
+  protected async createPendingCertWithPrivateKey(prefix: string, certType: CertType, user: User, network: Network, subject: string): Promise<CreatePendingCertResult> {
+    var cert: Cert = await Cert.createPending(certType, subject, network, user);
     var serial: number = cert.sequenceId;
-    var certsDir: string;
-    certsDir = path.join(certsRootDir, serial.toString());
-    fsExtra.mkdirpSync(certsDir);
-    // private key
+    var certsDir: string = path.join(AppConfigConstants.ConfigCertsDir, serial.toString());
+    await CertsManager.mkdirp(certsDir);
     var privateKeyPath: string = path.join(certsDir, prefix + '.key');
-    var crtPath: string = path.join(certsDir, prefix + '.crt');
     await Utils.createPrivateKey(privateKeyPath);
-    if (certType === CertType.CA && !signingUser) {
-      child_process.execFileSync('openssl', [
-        'req',
-        '-new',
-        '-x509',
-        '-extensions', 'v3_ca',
-        '-key', privateKeyPath,
-        '-out', crtPath,
-        '-set_serial', serial.toString(),
-        '-sha384',
-        '-subj', subject,
-        '-days', '3650']);
-    } else if (certType === CertType.CA) {
-      // csr
-      var csrPath: string = path.join(certsDir, prefix + '.csr');
-      await Utils.createCsr(privateKeyPath, subject, csrPath);
-      var signingCertSerial: number = await signingUser.getCaCertSerial(null);
-      // certificate
-      await Utils.signCertificate(
-        path.join(CaCertsConfigDir, signingCertSerial.toString(), 'ca.key'),
-        path.join(CaCertsConfigDir, signingCertSerial.toString(), 'ca.crt'),
-        serial,
-        csrPath,
-        crtPath,
-        true);
+    return {
+      cert: cert,
+      serial: cert.sequenceId,
+      bundle: {
+        bundleDirectory: certsDir,
+        certificateFile: null,
+        privateKeyFile: privateKeyPath,
+        certificateChainFile: null
+      }
+    };
+  }
 
-    } else {
-      // csr
-      var csrPath: string = path.join(certsDir, prefix + '.csr');
-      await Utils.createCsr(privateKeyPath, subject, csrPath);
-      var signingCertSerial: number = await signingUser.getCaCertSerial(network);
-      // certificate
-      await Utils.signCertificate(
-        path.join(CaCertsConfigDir, signingCertSerial.toString(), 'ca.key'),
-        path.join(CaCertsConfigDir, signingCertSerial.toString(), 'ca.crt'),
-        serial,
-        csrPath,
-        crtPath,
-        true);
-
-    }
-    await cert.markAsActive();
-    return new CertBundle({
-      certificatePemFile: crtPath,
-      privateKeyPemFile: privateKeyPath
+  private static async mkdirp(dir: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      fsExtra.mkdirp(dir, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve();
+      });
     });
+  }
+
+  private async createCert(subject: string, certType: CertType,
+    user: User, network: Network, prefix: string,
+    createExportable: boolean,
+    signingUser: User,
+    withChain: boolean, bundleChainWithCert: boolean): Promise<CertFileBundle> {
+    var result: CreatePendingCertResult = await this.createPendingCertWithPrivateKey(prefix, certType, user, network, subject);
+    var bundle: CertFileBundle = result.bundle;
+    var certsDir: string = bundle.bundleDirectory;
+    var serial: number = result.serial;
+    var crtPath = path.join(certsDir, prefix + '.crt');
+
+    // csr
+    var csrPath: string = path.join(certsDir, prefix + '.csr');
+    await Utils.createCsr(bundle.privateKeyFile, subject, csrPath);
+    var signingCertSerial: number = await signingUser.getCaCertSerial(network);
+    var caFileBundle: CertFileBundle = this.getCertFileBundle(signingCertSerial);
+
+    // certificate
+    await Utils.signCertificate(
+      caFileBundle.privateKeyFile,
+      caFileBundle.certificateFile,
+      serial,
+      csrPath,
+      crtPath,
+      365);
+
+    // chain
+    if (withChain) {
+      let certificateChainFile: string = path.join(certsDir, 'chain.pem');
+      await Utils.writeFile(certificateChainFile, await Utils.readFile(caFileBundle.certificateFile));
+      if (caFileBundle.certificateChainFile) {
+        await Utils.appendFile(certificateChainFile, await Utils.readFile(caFileBundle.certificateChainFile));
+      }
+      bundle.certificateChainFile = certificateChainFile;
+    }
+
+    if (bundleChainWithCert) {
+      await Utils.appendFile(crtPath, await Utils.readFile(caFileBundle.certificateChainFile));
+      if (caFileBundle.certificateChainFile) {
+        await Utils.appendFile(crtPath, await Utils.readFile(caFileBundle.certificateChainFile));
+      }
+    }
+
+    bundle.certificateFile = crtPath;
+    var bundleConfigPath: string = path.join(bundle.bundleDirectory, 'bundle.json');
+    await this.saveCertBundleConfig(bundleConfigPath, bundle);
+    await result.cert.markAsActive();
+    return bundle;
     /*
         return Q.resolve<void>(null)
           .then(() => {
@@ -148,11 +138,20 @@ export class CertsManager {
           });*/
   }
 
-  getCaCertBundle(): CertBundle {
-    if (!this.caCertConfig) {
-      //  this.caCertConfig = require(CaConfigJson);
-    }
-    return new CertBundle(this.caCertConfig);
+  protected saveCertBundleConfig(filePath: string, bundle: CertFileBundle): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      fsExtra.writeJson(filePath, bundle, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(filePath);
+      });
+    });
+  }
+
+  private getCertFileBundle(serial: number): CertFileBundle {
+    return require(path.join(AppConfigConstants.ConfigCertsDir, serial.toString(), 'bundle.json'));
   }
 }
 

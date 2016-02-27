@@ -6,12 +6,12 @@ import * as Q from 'q';
 import * as UUID from 'node-uuid';
 import * as jwt from 'jsonwebtoken';
 
-import {AuthTokenConfig, TokenContext} from '../models/app-configs';
+import {TokenContext} from '../models/app-configs';
+import AppConfig, {AuthTokenConfig} from '../config/config';
+
 import {AuthorizationError, UserError, ConflictResourceError, ResourceNotFoundError} from '../models/errors';
 import {TokenScope} from '../../models/common';
 import {ErrorCodes} from '../../models/errors';
-
-var tokenConfig: AuthTokenConfig = require('../../config/auth-token.json');
 
 interface Event {
   reqId: string;
@@ -164,9 +164,9 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
       if (err instanceof UserError) {
         if (err instanceof ResourceNotFoundError) {
           event.expressRes.status(404).send(err.jsonObj);
-        } else if (err instanceof ConflictResourceError){
+        } else if (err instanceof ConflictResourceError) {
           event.expressRes.status(409).send(err.jsonObj);
-         } else {
+        } else {
           event.expressRes.status(400).send(err.jsonObj);
         }
       } else {
@@ -264,9 +264,9 @@ export class HandlerUtils {
     var handlers: EventHandler[] = [];
     if (!options.skipAutorization) {
       if (options.requireAdminAuthoriztaion) {
-        handlers.push(new JsonWebTokenAuthorizationHandler(tokenConfig, [TokenScope.Admin]))
+        handlers.push(new JsonWebTokenAuthorizationHandler(AppConfig.authTokenConfig, [TokenScope.Admin]))
       } else {
-        handlers.push(new JsonWebTokenAuthorizationHandler(tokenConfig, [TokenScope.Public, TokenScope.Admin]))
+        handlers.push(new JsonWebTokenAuthorizationHandler(AppConfig.authTokenConfig, [TokenScope.Public, TokenScope.Admin]))
       }
     }
 

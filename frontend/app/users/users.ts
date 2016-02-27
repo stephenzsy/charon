@@ -1,6 +1,6 @@
 import * as angular from 'angular';
 import {User, ListUsersResult, GetUserResult, UserType} from '../models/users';
-import {NetworkMetadata} from '../models/networks';
+import {Network} from '../models/networks';
 import {UserPasswordMetadata, CreateUserPasswordResult} from '../models/secrets';
 import {CharonServices, charonServicesName} from '../services/services';
 
@@ -51,7 +51,7 @@ class UsersController {
 export const name: string = 'UsersController';
 export const controller = ['$scope', charonServicesName, UsersController];
 
-interface NetworkScope extends NetworkMetadata {
+interface NetworkScope extends Network {
   hasPassword: boolean;
   password?: UserPasswordMetadata;
 }
@@ -111,10 +111,10 @@ class UserController {
     var result: GetUserResult = await this.charonServices.users.getUser({ id: this.userId, withPasswords: true });
     this.$scope.username = result.username;
     this.$scope.email = result.email;
-    let networks: NetworkMetadata[] = await this.charonServices.networks.listNetworks();
+    let networks: Network[] = await this.charonServices.networks.listNetworks();
     let networkScopes: NetworkScope[] = [];
     let dict: { [id: string]: NetworkScope } = {};
-    networks.forEach((network: NetworkMetadata) => {
+    networks.forEach((network: Network) => {
       var ns: NetworkScope = {
         id: network.id,
         name: network.name,

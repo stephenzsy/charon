@@ -14,7 +14,8 @@ export class TlsConfig extends NamedConfig {
     this.addKeyedConfig('private_key_file', opt.privateKeyFile);
     this.addKeyedConfig('certificate_file', opt.certificateFile);
     this.addKeyedConfig('ca_file', opt.caFile);
-    this.addKeyedConfig('ecdh_curve', '"secp384r1"')
+    this.addKeyedConfig('auto_chain', 'no');
+    this.addKeyedConfig('ecdh_curve', '"secp384r1"');
   }
 }
 

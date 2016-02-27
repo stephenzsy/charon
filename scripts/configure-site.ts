@@ -9,17 +9,17 @@ import * as path from 'path';
 
 import * as fsExtra from 'fs-extra';
 
-import * as Shared from './shared';
 import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
-import {CertConfig, CertSubject} from '../lib/models/certs';
+import {CertSubject} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
 import certsManager from '../lib/certs/certs-manager';
+import {intermediateCaManager} from '../lib/certs/ca-manager';
 import User, * as Users from '../lib/models/users';
+import AppConfig, {Constants as ConfigConstants} from '../lib/config/config';
 
-const initCertsConfig: InitCertsConfig = require(path.join(Shared.ConfigInitDir, 'certs-config.json'));
-
+const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 
 async function configure() {
   try {
@@ -30,7 +30,7 @@ async function configure() {
     }
     siteUser = await User.create(Users.UserType.System, 'site', 'site@system');
     var caSubject: CertSubject = new CertSubject(initCertsConfig.ca, initCertsConfig.siteCa);
-    await certsManager.createCaCert(caSubject.subject, siteUser, null, rootUser);
+    await intermediateCaManager.createCaCert(siteUser, null, caSubject.subject);
     var siteSubject: CertSubject = new CertSubject(caSubject, initCertsConfig.siteServer);
     await certsManager.createSiteCert(siteSubject.subject, siteUser);
     charonSequelize.close();

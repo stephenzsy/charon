@@ -3,8 +3,6 @@
 
 import 'babel-polyfill';
 
-import * as Shared from './shared';
-
 import * as Q from 'q';
 import * as mysql from 'mysql';
 import Constants from '../lib/constants';

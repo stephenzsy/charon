@@ -6,8 +6,8 @@ routes/**/*.js
 scripts/**/*.js
 models/**/*.js
 **/*.js.map
-/typings
+typings
 public/javascripts/app/**/*.js
 *.log
-/certs
-/config
+config/generated
+config/init
