@@ -11,7 +11,7 @@ import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/eve
 import {CreateClientKeypairRequest, CreateClientKeypairResult} from '../../../models/certs';
 //import {CertSubjectConfig, CertSubject} from '../../../lib/models/certs';
 import {BadRequestError} from '../../../lib/models/errors';
-import {certsManager} from '../../../lib/certs/certs-manager';
+//import {certsManager} from '../../../lib/certs/certs-manager';
 import * as CertsUtils from '../../../lib/certs/utils';
 
 //const certsSubjectConfig: CertSubjectConfig = require('../../../config/init/certs-config.json');

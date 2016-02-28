@@ -14,26 +14,31 @@ import {CertSubject} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
-import {CertsManager, RootCaCertsManager, SiteCertsManager} from '../lib/certs/certs-managers';
+import {CertsManager, SiteCertsManager} from '../lib/certs/certs-managers';
 import User, * as Users from '../lib/models/users';
+import {TokenScope} from '../models/auth';
 import AppConfig, {Constants as ConfigConstants} from '../lib/config/config';
 
 const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 
 async function configure() {
   try {
-    var rootUser: User = await User.findByUsername('root', Users.UserType.System);
     var siteUser: User = await User.findByUsername('site', Users.UserType.System);
-    if (siteUser) {
-      await siteUser.delete();
+    var adminUser: User = await User.findByUsername('admin', Users.UserType.Login);
+    if (adminUser) {
+      adminUser.delete();
     }
-    siteUser = await User.create(Users.UserType.System, 'site', 'site@system');
-    var caSubject: CertSubject = new CertSubject(initCertsConfig.ca, initCertsConfig.siteCa);
-    var rootCaManager = await RootCaCertsManager.getInstance(rootUser);
-    await rootCaManager.createIntermediateCa(siteUser, null, caSubject.subject);
-    var siteSubject: CertSubject = new CertSubject(caSubject, initCertsConfig.siteServer);
+    adminUser = await User.create(Users.UserType.Login, 'admin', 'admin@login');
+    await adminUser.setPermissionScopes([TokenScope.Admin, TokenScope.Public]);
+
+    var certSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
+      commonName: 'admin',
+      emailAddress: 'admin@login'
+    });
     var siteCertsManager: SiteCertsManager = await SiteCertsManager.getInstance(siteUser);
-    await siteCertsManager.createSiteCert(siteSubject.subject, siteUser);
+    var clientCertBundle = await siteCertsManager.createClientCert(certSubject.subject, adminUser);
+    console.log(clientCertBundle);
+
     charonSequelize.close();
     // admin user
   } catch (e) {
@@ -42,8 +47,4 @@ async function configure() {
   }
 }
 
-try {
-  configure();
-} catch (err) {
-  console.error(err);
-}
+configure();

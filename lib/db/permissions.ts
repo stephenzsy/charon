@@ -40,7 +40,10 @@ export class DataAccessPermission extends DataAccessCommon<PermissionModel> {
     var model: PermissionModel = <PermissionModel>this.sqlize.define(
       'permission',
       this.createModelAttributes(), {});
-    model.belongsTo(this.userModel, { foreignKey: Columns.UserId, as: 'user' });
+    model.belongsTo(this.userModel, {
+      foreignKey: Columns.UserId, as: 'user', onDelete: 'CASCADE'
+    });
+    this.userModel.hasMany(model, { foreignKey: Columns.UserId, as: 'permissions' });
     return model;
   }
 }

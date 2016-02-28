@@ -14,8 +14,7 @@ import {CertSubject} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
-import certsManager from '../lib/certs/certs-manager';
-import {rootCaManager} from '../lib/certs/ca-manager';
+import {CertsManager, RootCaCertsManager} from '../lib/certs/certs-managers';
 import User, * as Users from '../lib/models/users';
 import AppConfig, {Constants as ConfigConstants} from '../lib/config/config';
 
@@ -28,7 +27,7 @@ async function configure() {
   }
   rootUser = await User.create(Users.UserType.System, 'root', 'root@system');
   var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);
-  await rootCaManager.createRootCaCert(caSubject.subject, rootUser);
+  await RootCaCertsManager.createRootCaCert(caSubject.subject, rootUser);
   charonSequelize.close();
 }
 

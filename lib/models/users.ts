@@ -3,10 +3,11 @@
 import * as Q from 'q';
 var _Q = require('q');
 
-import {UserModel} from '../db/index';
+import {UserModel, PermissionModel} from '../db/index';
 import {CertTypeStr, CertInstance} from '../db/certs';
 import {ModelInstance, CollectionQueryResult} from './common';
 import {UserInternal, UserInstance, UserTypeStr} from '../db/users';
+import {PermissionInstance} from '../db/permissions';
 import {Network} from './networks';
 
 export enum UserType {
@@ -32,6 +33,13 @@ export class User extends ModelInstance<UserInstance> {
     return this.instance.updatedAt;
   }
 
+  async setPermissionScopes(scopes: string[]): Promise<void> {
+    var permissions: PermissionInstance[] = await Promise.all(scopes.map(scope => {
+      return PermissionModel.create({ scope: scope });
+    }));
+    return this.instance.setPermissions(permissions);
+  }
+
   async getCaCertSerial(network: Network): Promise<number> {
     var whereClause = {
       type: CertTypeStr.CA
@@ -48,8 +56,8 @@ export class User extends ModelInstance<UserInstance> {
     return certs[0].id;
   }
 
-  delete(): Q.Promise<void> {
-    return _Q(this.instance.destroy());
+  async delete(): Promise<void> {
+    return this.instance.destroy();
   }
 
   // static methods
@@ -83,22 +91,20 @@ export class User extends ModelInstance<UserInstance> {
     return null;
   }
 
-  static findAndCountAllActive(opt: {
+  static async findAndCountAllActive(opt: {
     limit: number
-  }): Q.Promise<CollectionQueryResult<User, number>> {
-    return _Q(UserModel.findAndCountAll({
+  }): Promise<CollectionQueryResult<User, number>> {
+    var result = await UserModel.findAndCountAll({
       limit: opt.limit
-    }))
-      .then((result: { rows: UserInstance[], count: number }): CollectionQueryResult<User, number> => {
-        var items: User[] = [];
-        result.rows.forEach((instance: UserInstance) => {
-          items.push(new User(instance));
-        });
-        return {
-          count: result.count,
-          items: items
-        };
-      })
+    });
+    var items: User[] = [];
+    result.rows.forEach((instance: UserInstance) => {
+      items.push(new User(instance));
+    });
+    return {
+      count: result.count,
+      items: items
+    };
   }
 
   private static typeToStr(type: UserType): string {

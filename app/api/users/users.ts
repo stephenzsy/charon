@@ -77,16 +77,12 @@ class CreateUserEnactor extends ActionEnactor<CreateUserRequest, CreateUserResul
 }
 
 class DeleteUserEnactor extends ActionEnactor<DeleteUserRequest, DeleteUserResult> {
-  enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
-    return resolveUser(req.id)
-      .then((user: User): Q.Promise<void> => {
-        return user.delete();
-      })
-      .then((): DeleteUserResult => {
-        return {
-          deletedAt: new Date()
-        }
-      });
+  async enactAsync(req: DeleteUserRequest): Promise<DeleteUserResult> {
+    var user: User = await resolveUser(req.id);
+    await user.delete();
+    return {
+      deletedAt: new Date()
+    }
   }
 }
 

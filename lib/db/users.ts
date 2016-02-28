@@ -4,6 +4,7 @@ import * as Sequelize from 'sequelize';
 
 import {CommonDataInternal, DataAccessCommon} from './common'
 import {CertInstance} from './certs';
+import {PermissionInstance} from './permissions';
 
 export module Columns {
   export const Username: string = 'username';
@@ -32,7 +33,9 @@ export interface UserInstance extends Sequelize.Instance<UserInstance, UserInter
       type: string;
       networkId?: string;
     }
-  }): Promise<CertInstance[]>
+  }): Promise<CertInstance[]>;
+
+  setPermissions(permissions: PermissionInstance[]): Promise<void>;
 }
 
 export type UserModel = Sequelize.Model<UserInstance, UserInternal>;

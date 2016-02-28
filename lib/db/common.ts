@@ -6,8 +6,8 @@ export module Columns {
 }
 
 export interface CommonDataInternal {
-  id: number;
-  uid: string;
+  id?: number;
+  uid?: string;
 }
 
 export interface DataAccess<T extends Sequelize.Model<any, any>> {

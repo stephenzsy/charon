@@ -159,6 +159,19 @@ export async function rename(src: string, dst: string): Promise<void> {
   });
 }
 
+export async function mkdirp(dir: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fsExtra.mkdirp(dir, (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+
 export async function createRootCaCert(privateKeyPath: string, certificatePath: string, serial: number, subject: string): Promise<void> {
   return execFile('openssl', [
     'req',
@@ -173,13 +186,13 @@ export async function createRootCaCert(privateKeyPath: string, certificatePath: 
     '-days', '3650']);
 }
 
-export function exportPkcs12(
+export async function exportPkcs12(
   crtInputPath: string,
   keyInputPath: string,
   caCertInputPath: string,
   passout: string,
-  p12OutputPath: string): Q.Promise<void> {
-  return Q.nfcall<void>(child_process.execFile, 'openssl', ['pkcs12',
+  p12OutputPath: string): Promise<void> {
+  return execFile('openssl', ['pkcs12',
     '-export',
     '-chain',
     '-in', crtInputPath,

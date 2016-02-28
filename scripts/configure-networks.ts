@@ -16,8 +16,7 @@ import * as db from '../lib/db/index';
 import {Network} from '../lib/models/networks';
 import {NetworkConfig} from '../lib/config/networks';
 import {createBase62Password} from '../lib/secrets/utils';
-import {certsManager} from '../lib/certs/certs-manager';
-import {intermediateCaManager} from '../lib/certs/ca-manager';
+import {NetworkCertsManager, RootCaCertsManager} from '../lib/certs/certs-managers';
 import {CertSubject} from '../lib/models/certs';
 import {CertFileBundle} from '../lib/models/certs';
 import User, * as Users from '../lib/models/users';
@@ -51,14 +50,16 @@ async function configureNetwork(config: NetworkConfig, networksUser: User, rootU
     commonName: config.certCommonName + " CA",
     emailAddress: config.certEmail
   });
-  var caFileBundle: CertFileBundle = await intermediateCaManager.createCaCert(networksUser, network, caCertSubject.subject);
+  var rootCertsManager = await RootCaCertsManager.getInstance(rootUser);
+  var caFileBundle: CertFileBundle = await rootCertsManager.createIntermediateCa(networksUser, network, caCertSubject.subject);
 
   // create server cert
   var serverCertSubject: CertSubject = new CertSubject(initCertsConfig.ca, {
     commonName: config.certCommonName,
     emailAddress: config.certEmail
   });
-  var bundle: CertFileBundle = await certsManager.createNetworkServerCert(serverCertSubject.subject, networksUser, network);
+  var networksCertsManager: NetworkCertsManager = await NetworkCertsManager.getInstance(networksUser, network);
+  var bundle: CertFileBundle = await networksCertsManager.createNetworkServerCert(serverCertSubject.subject, networksUser);
 
   return {
     id: network.id,

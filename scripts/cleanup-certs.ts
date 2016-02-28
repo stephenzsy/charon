@@ -14,7 +14,6 @@ import {Cert} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
-import certsManager from '../lib/certs/certs-manager';
 import User, * as Users from '../lib/models/users';
 import AppConfig, {Constants as ConfigConstants} from '../lib/config/config';
 

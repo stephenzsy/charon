@@ -19,6 +19,8 @@ export interface CertFileBundle {
   certificateFile: string;
   privateKeyFile: string;
   certificateChainFile: string;
+  exportPkcs12File?: string;
+  exportPkcs12Password?: string;
 }
 
 export class CertSubject {
