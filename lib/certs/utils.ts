@@ -76,6 +76,7 @@ export function signCertificate(
   caCertificateInputPath: string,
   serial: number,
   csrInputPath: string,
+  extfile: string,
   crtOutputPath: string,
   days: number): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -86,6 +87,8 @@ export function signCertificate(
       '-set_serial', serial.toString(),
       '-CAkey', caPrivateKeyInputPath,
       '-sha384',
+      '-extfile', extfile,
+      '-extensions', 'v3_req',
       '-CA', caCertificateInputPath,
       '-days', days.toString()
     ];
@@ -200,4 +203,35 @@ export async function exportPkcs12(
     '-out', p12OutputPath,
     '-CAfile', caCertInputPath,
     '-passout', 'pass:' + passout]);
+}
+
+export async function writeV3Ext(path: string, subjectAltDnsNames: string[], subjectAltIps: string[]) {
+  var lines: string[] = [
+    '[ v3_req ]',
+    'subjectKeyIdentifier = hash',
+    'authorityKeyIdentifier	= keyid,issuer',
+    'basicConstraints	= CA:false'
+  ];
+  if (subjectAltDnsNames.length > 0 || subjectAltIps.length > 0) {
+    lines = lines.concat([
+      'subjectAltName = @alt_names',
+      '',
+      '[ alt_names ]'
+    ]);
+  }
+  {
+    let counter: number = 0;
+    subjectAltDnsNames.forEach(dnsName => {
+      ++counter;
+      lines.push('DNS.' + counter + ' = ' + dnsName);
+    });
+  }
+  {
+    let counter: number = 0;
+    subjectAltIps.forEach(ip => {
+      ++counter;
+      lines.push('IP.' + counter + ' = ' + ip);
+    });
+  }
+  return writeFile(path, lines.join("\n"));
 }

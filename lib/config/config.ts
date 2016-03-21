@@ -25,6 +25,7 @@ export module Constants {
   export const FreeradiusDir: string = path.join(ConfigDir, 'freeradius');
   export const PathAuthTokenConfig: string = path.join(ConfigDir, 'auth-token.json');
   export const PathNetworksConfig: string = path.join(ConfigDir, 'networks-config.json');
+  export const NginxDir: string = path.join(ConfigDir, 'nginx');
 
   const CertsCnfDir: string = path.join(ConfigRootDir, 'certs');
   export const CertsCnfRootCa: string = path.join(CertsCnfDir, 'intermediate-ca.cnf');

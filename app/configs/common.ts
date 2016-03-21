@@ -35,6 +35,16 @@ export class NamedConfig extends Config {
 
 export class Generator {
 
+  private keyValueSeparator: string = ' = ';
+  private endOfCommand: string = '';
+
+  constructor(isNginx: boolean = false) {
+    if (isNginx) {
+      this.keyValueSeparator = ' ';
+      this.endOfCommand = ';';
+    }
+  }
+
   generate(config: Config, indent: number = 0): string {
     var prefix: string = '';
     for (var i = 0; i < indent; i += 2) {
@@ -54,9 +64,9 @@ export class Generator {
         if (value instanceof Config) {
           result.push(this.generate(value, indent + 2));
         } else if (c.key) {
-          result.push(subprefix + c.key + ' = ' + value);
+          result.push(subprefix + c.key + this.keyValueSeparator + value + this.endOfCommand);
         } else {
-          result.push(subprefix + value);
+          result.push(subprefix + value + this.endOfCommand);
         }
       });
 

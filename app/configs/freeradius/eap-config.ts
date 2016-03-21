@@ -1,5 +1,5 @@
 import * as uuid from 'node-uuid';
-import {Config, NamedConfig} from './common';
+import {Config, NamedConfig} from '../common';
 
 export interface TlsConfigOptions {
   name: string;

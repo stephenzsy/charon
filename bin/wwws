@@ -11,7 +11,7 @@ var fs = require('fs');
 var path = require('path');
 var debug = require('debug')('charon:server');
 var https = require('https');
-var siteCertConfig = require('../config/generated/certs/site.json');
+var proxyCertConfig = require('../config/generated/certs/proxy.json');
 
 /**
  * Get port from environment and store in Express.
@@ -25,9 +25,11 @@ app.set('port', port);
  */
 
 var server = https.createServer({
-  key: fs.readFileSync(siteCertConfig.privateKeyFile),
-  cert: fs.readFileSync(siteCertConfig.certificateFile),
-  ca: fs.readFileSync(siteCertConfig.certificateChainFile)
+  key: fs.readFileSync(proxyCertConfig.privateKeyFile),
+  cert: fs.readFileSync(proxyCertConfig.certificateFile),
+  ca: fs.readFileSync(proxyCertConfig.certificateChainFile),
+  requestCert: true,
+  rejectUnauthorized: true
 },app);
 
 /**

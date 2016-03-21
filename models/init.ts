@@ -1,6 +1,8 @@
 export interface CertSubjectConfig {
   commonName: string;
   emailAddress: string;
+  subjectAltDnsNames?: string[];
+  subjectAltIps?: string[];
 }
 
 export interface CaCertSubjectConfig extends CertSubjectConfig {
@@ -15,4 +17,7 @@ export interface InitCertsConfig {
   ca: CaCertSubjectConfig;
   siteCa: CertSubjectConfig;
   siteServer: CertSubjectConfig;
+  proxyCa: CertSubjectConfig;
+  proxyServer: CertSubjectConfig;
+  proxyClient: CertSubjectConfig;
 }

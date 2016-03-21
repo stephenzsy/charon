@@ -1,5 +1,5 @@
 import * as uuid from 'node-uuid';
-import {Config, NamedConfig} from './common';
+import {Config, NamedConfig} from '../common';
 
 export class PoolConfig extends Config {
   constructor() {

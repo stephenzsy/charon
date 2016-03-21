@@ -9,19 +9,25 @@ import * as Q from 'q';
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 const _moment: moment.MomentStatic = require('moment');
+import * as validator from 'validator';
 
 import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {TokenContext} from '../../../lib/models/app-configs';
 import {AuthTokenConfig} from '../../../lib/config/config';
 import {TokenScope} from '../../../models/common';
+import {ErrorCodes} from '../../../models/errors';
 import {GetTokenRequest, GetTokenResult} from '../../../models/auth';
-import {BadRequestError} from '../../../lib/models/errors';
+import {BadRequestError, AuthorizationError} from '../../../lib/models/errors';
 import AppConfig from '../../../lib/config/config';
 
 var tokenConfig: AuthTokenConfig = AppConfig.authTokenConfig;
 
-export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetTokenResult>{
-  enactSync(req: GetTokenRequest): GetTokenResult {
+interface GetTokenRequestInternal extends GetTokenRequest {
+  certSerial: number;
+}
+
+export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequestInternal, GetTokenResult>{
+  enactSync(req: GetTokenRequestInternal): GetTokenResult {
     var token = jwt.sign(
       <TokenContext>{ scope: req.scope },
       tokenConfig.privateKey, {
@@ -38,7 +44,7 @@ export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequest, GetToken
 
 export module Handlers {
   export const getTokenHandler: express.RequestHandler = HandlerUtils.newRequestHandler<GetTokenRequest, GetTokenResult>({
-    requestDeserializer: (req: express.Request): GetTokenRequest => {
+    requestDeserializer: (req: express.Request): GetTokenRequestInternal => {
       let scope: string = TokenScope.Public;
       if (req.query && req.query['scope']) {
         switch (req.query['scope']) {
@@ -52,11 +58,16 @@ export module Handlers {
             throw new BadRequestError('Invalid Request');
         }
       }
+      var serialStr: string = req.get('x-ssl-client-serial');
+      if (!validator.isInt(serialStr)) {
+        throw new AuthorizationError(ErrorCodes.Authorization.AuthorizationRequired, 'Invalid client certificate serial: ' + serialStr);
+      }
       return {
-        scope: scope
+        scope: scope,
+        certSerial: validator.toInt(serialStr)
       };
     },
-    skipAutorization: true,
+    skipAuthorization: true,
     enactor: new GetTokenEnactor()
   });
 }

@@ -2,11 +2,11 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
-import {Generator} from '../app/freeradius/models/common';
-import {ClientsConfig, ClientsConfigOptions} from '../app/freeradius/models/clients-config';
-import {ServerConfig, ServerConfigOption} from '../app/freeradius/models/server-config';
-import {EapConfig} from '../app/freeradius/models/eap-config';
-import {SqlConfig, SqlConfigOption} from '../app/freeradius/models/sql-config';
+import {Generator} from '../app/configs/common';
+import {ClientsConfig, ClientsConfigOptions} from '../app/configs/freeradius/clients-config';
+import {ServerConfig, ServerConfigOption} from '../app/configs/freeradius/server-config';
+import {EapConfig} from '../app/configs/freeradius/eap-config';
+import {SqlConfig, SqlConfigOption} from '../app/configs/freeradius/sql-config';
 import AppConfig, {Constants as ConfigConstants, NetworkInternal} from '../lib/config/config';
 
 const ConfigSitesAvailableDir: string = path.join(ConfigConstants.FreeradiusDir, 'sites-available');

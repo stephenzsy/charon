@@ -6,16 +6,16 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "express/express.d.ts": {
-      "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
+      "commit": "c4309e0e646ec024537c0806c6a31d199aa68df6"
     },
     "serve-static/serve-static.d.ts": {
-      "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
+      "commit": "c4309e0e646ec024537c0806c6a31d199aa68df6"
     },
     "node/node.d.ts": {
-      "commit": "163a4277199c3d896d9efffe24ea84c85f55c8ac"
+      "commit": "c4309e0e646ec024537c0806c6a31d199aa68df6"
     },
     "mime/mime.d.ts": {
-      "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
+      "commit": "c4309e0e646ec024537c0806c6a31d199aa68df6"
     },
     "q/Q.d.ts": {
       "commit": "86dbea8fc37d9473fee465da4f0a21bea4f8cbd9"
@@ -76,6 +76,9 @@
     },
     "angularjs/angular-route.d.ts": {
       "commit": "7fffbd3e040a93c244777e3be04cd6223ac69301"
+    },
+    "express-serve-static-core/express-serve-static-core.d.ts": {
+      "commit": "c4309e0e646ec024537c0806c6a31d199aa68df6"
     }
   }
 }

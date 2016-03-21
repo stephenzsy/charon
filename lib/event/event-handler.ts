@@ -130,7 +130,7 @@ export interface RequestEventHandlerOptions<TInput, TOutput> {
   asyncRequestDeserializer?: AsyncRequestDeserializer<TInput>;
   requestDeserializer?: RequestDeserializer<TInput>;
   resultSerializer?: ResultSerializer<TOutput>;
-  skipAutorization?: boolean;
+  skipAuthorization?: boolean;
   requireAdminAuthoriztaion?: boolean;
 }
 
@@ -262,7 +262,7 @@ export class HandlerUtils {
 
   public static newRequestHandler<TInput, TOutput>(options: RequestEventHandlerOptions<TInput, TOutput>): express.RequestHandler {
     var handlers: EventHandler[] = [];
-    if (!options.skipAutorization) {
+    if (!options.skipAuthorization) {
       if (options.requireAdminAuthoriztaion) {
         handlers.push(new JsonWebTokenAuthorizationHandler(AppConfig.authTokenConfig, [TokenScope.Admin]))
       } else {

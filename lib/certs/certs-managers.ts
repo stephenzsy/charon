@@ -147,7 +147,8 @@ export abstract class IntermediateCaCertsManager extends CertsManager {
   protected async createCert(subject: string, certType: CertType,
     user: User, prefix: string,
     createExportable: boolean,
-    withChain: boolean, bundleChainWithCert: boolean): Promise<CertFileBundle> {
+    withChain: boolean, bundleChainWithCert: boolean,
+    subjectAltDnsNames: string[] = [], subjectAltIps: string[] = []): Promise<CertFileBundle> {
     var result: CreatePendingCertResult = await CertsManager.createPendingCertWithPrivateKey(prefix, certType, user, this.network, subject);
     var bundle: CertFileBundle = result.bundle;
     var certsDir: string = bundle.bundleDirectory;
@@ -158,12 +159,17 @@ export abstract class IntermediateCaCertsManager extends CertsManager {
     var csrPath: string = path.join(certsDir, prefix + '.csr');
     await Utils.createCsr(bundle.privateKeyFile, subject, csrPath);
 
+    // v3 ext
+    var v3ExtPath: string = path.join(certsDir, prefix + '.ext');
+    await Utils.writeV3Ext(v3ExtPath, subjectAltDnsNames, subjectAltIps);
+
     // certificate
     await Utils.signCertificate(
       this.ca.privateKeyFile,
       this.ca.certificateFile,
       serial,
       csrPath,
+      v3ExtPath,
       crtPath,
       365);
 
@@ -178,7 +184,7 @@ export abstract class IntermediateCaCertsManager extends CertsManager {
     }
 
     if (bundleChainWithCert) {
-      await Utils.appendFile(crtPath, await Utils.readFile(this.ca.certificateChainFile));
+      await Utils.appendFile(crtPath, await Utils.readFile(this.ca.certificateFile));
       if (this.ca.certificateChainFile) {
         await Utils.appendFile(crtPath, await Utils.readFile(this.ca.certificateChainFile));
       }
@@ -207,8 +213,12 @@ export abstract class IntermediateCaCertsManager extends CertsManager {
     return bundle;
   }
 
-  createClientCert(subject: string, user: User) {
-    return this.createCert(subject, CertType.Server, user, 'client', true, true, false);
+  async createClientCert(subject: string, user: User, createExportable: boolean = true, bundleConfigPrefix?: string): Promise<CertFileBundle> {
+    var bundle: CertFileBundle = await this.createCert(subject, CertType.Server, user, 'client', createExportable, true, false);
+    if (bundleConfigPrefix) {
+      await CertsManager.saveCertBundleConfig(path.join(AppConfigConstants.ConfigCertsDir, bundleConfigPrefix + '.json'), bundle);
+    }
+    return bundle;
   }
 }
 
@@ -227,9 +237,9 @@ export class NetworkCertsManager extends IntermediateCaCertsManager {
 
 export class SiteCertsManager extends IntermediateCaCertsManager {
 
-  async createSiteCert(subject: string, user: User): Promise<CertFileBundle> {
-    var bundle: CertFileBundle = await this.createCert(subject, CertType.Site, user, 'site', false, true, false);
-    await CertsManager.saveCertBundleConfig(path.join(AppConfigConstants.ConfigCertsDir, 'site.json'), bundle);
+  async createSiteCert(subject: string, user: User, prefix: string, subjectAltDnsNames: string[], subjectAltIps: string[], bundleChainWithCert: boolean): Promise<CertFileBundle> {
+    var bundle: CertFileBundle = await this.createCert(subject, CertType.Site, user, prefix, false, true, bundleChainWithCert, subjectAltDnsNames, subjectAltIps);
+    await CertsManager.saveCertBundleConfig(path.join(AppConfigConstants.ConfigCertsDir, prefix + '.json'), bundle);
     return bundle;
   }
 
@@ -237,5 +247,9 @@ export class SiteCertsManager extends IntermediateCaCertsManager {
     var serial: number = await owner.getCaCertSerial(null);
     var ca = CertsManager.getCertFileBundle(serial);
     return new SiteCertsManager(owner, ca, null);
+  }
+
+  get caCertificateFile(): string {
+    return this.ca.certificateFile;
   }
 }
