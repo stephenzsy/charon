@@ -16,6 +16,15 @@ export interface NetworkInternal extends Network {
   serverTlsCa: string;
 }
 
+export interface DbConfig {
+  user: string;
+  host: string;
+  ssl: {
+    key: string;
+    cert: string;
+    ca: string;
+  }
+}
 
 export module Constants {
   const ConfigRootDir: string = path.join(__dirname, '../../config');
@@ -23,6 +32,7 @@ export module Constants {
   export const ConfigDir: string = path.join(ConfigRootDir, 'generated');
   export const ConfigCertsDir: string = path.join(ConfigDir, 'certs');
   export const FreeradiusDir: string = path.join(ConfigDir, 'freeradius');
+  export const DbConfig: string = path.join(ConfigDir, 'mysql.json');
   export const PathAuthTokenConfig: string = path.join(ConfigDir, 'auth-token.json');
   export const PathNetworksConfig: string = path.join(ConfigDir, 'networks-config.json');
   export const NginxDir: string = path.join(ConfigDir, 'nginx');

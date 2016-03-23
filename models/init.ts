@@ -20,4 +20,7 @@ export interface InitCertsConfig {
   proxyCa: CertSubjectConfig;
   proxyServer: CertSubjectConfig;
   proxyClient: CertSubjectConfig;
+  dbCa: CertSubjectConfig;
+  dbServer: CertSubjectConfig;
+  dbClient: CertSubjectConfig;
 }

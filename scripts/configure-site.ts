@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
 import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
-import {CertSubject} from '../lib/models/certs';
+import {CertSubject, CertType} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertsManager, RootCaCertsManager, SiteCertsManager} from '../lib/certs/certs-managers';
@@ -48,7 +48,7 @@ async function configure() {
     await proxyCertsManager.createSiteCert(proxySubject.subject, proxyUser, 'proxy',
       initCertsConfig.proxyServer.subjectAltDnsNames, initCertsConfig.proxyServer.subjectAltIps, false);
     var proxyClientSubject: CertSubject = new CertSubject(proxyCaSubject, initCertsConfig.proxyClient);
-    await proxyCertsManager.createClientCert(proxyClientSubject.subject, proxyUser, false, 'proxy-client');
+    await proxyCertsManager.createClientCert(proxyClientSubject.subject, proxyUser, CertType.Site, false, 'proxy-client');
 
     charonSequelize.close();
     // admin user

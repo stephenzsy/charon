@@ -213,8 +213,8 @@ export abstract class IntermediateCaCertsManager extends CertsManager {
     return bundle;
   }
 
-  async createClientCert(subject: string, user: User, createExportable: boolean = true, bundleConfigPrefix?: string): Promise<CertFileBundle> {
-    var bundle: CertFileBundle = await this.createCert(subject, CertType.Server, user, 'client', createExportable, true, false);
+  async createClientCert(subject: string, user: User, certType: CertType, createExportable: boolean = true, bundleConfigPrefix?: string): Promise<CertFileBundle> {
+    var bundle: CertFileBundle = await this.createCert(subject, certType, user, 'client', createExportable, true, false);
     if (bundleConfigPrefix) {
       await CertsManager.saveCertBundleConfig(path.join(AppConfigConstants.ConfigCertsDir, bundleConfigPrefix + '.json'), bundle);
     }

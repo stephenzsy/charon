@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 
 import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
-import {CertSubject} from '../lib/models/certs';
+import {CertSubject, CertType} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
@@ -36,7 +36,7 @@ async function configure() {
       emailAddress: 'admin@login'
     });
     var siteCertsManager: SiteCertsManager = await SiteCertsManager.getInstance(siteUser);
-    var clientCertBundle = await siteCertsManager.createClientCert(certSubject.subject, adminUser);
+    var clientCertBundle = await siteCertsManager.createClientCert(certSubject.subject, adminUser, CertType.Site);
     console.log(clientCertBundle);
 
     charonSequelize.close();
