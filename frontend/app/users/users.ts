@@ -1,5 +1,5 @@
 import * as angular from 'angular';
-import {User, ListUsersResult, GetUserResult, UserType} from '../models/users';
+import {User, ListUsersRequest, ListUsersResult, GetUserResult, UserType} from '../models/users';
 import {Network} from '../models/networks';
 import {UserPasswordMetadata, CreateUserPasswordResult} from '../models/secrets';
 import {CharonServices, charonServicesName} from '../services/services';
@@ -29,7 +29,7 @@ class UsersController {
     $scope.addUserSubmit = () => {
       this.createUser();
     }
-    this.listusers();
+    this.listusers()
   }
 
   private async createUser() {
@@ -41,7 +41,7 @@ class UsersController {
   }
 
   private async listusers() {
-    var result: ListUsersResult = await this.charonServices.users.listUsers();
+    var result: ListUsersResult = await this.charonServices.users.listUsers(UserType.Network);
     this.$scope.users = result.items;
     this.$scope.$apply();
   }

@@ -33,6 +33,10 @@ export class User extends ModelInstance<UserInstance> {
     return this.instance.updatedAt;
   }
 
+  get type(): UserType {
+    return User.strToType(this.instance.type);
+  }
+
   async getPermissionScopes(): Promise<string[]> {
     var permissions: PermissionInstance[] = await this.instance.getPermissions();
     return permissions.map(permission => {
@@ -63,7 +67,10 @@ export class User extends ModelInstance<UserInstance> {
     return certs[0].id;
   }
 
-  async delete(): Promise<void> {
+  async delete(force: boolean = false): Promise<void> {
+    if (this.type === UserType.System && !force) {
+      throw "Deletion of system user is not allowed";
+    }
     return this.instance.destroy();
   }
 
@@ -98,11 +105,15 @@ export class User extends ModelInstance<UserInstance> {
     return null;
   }
 
-  static async findAndCountAllActive(opt: {
-    limit: number
-  }): Promise<CollectionQueryResult<User, number>> {
+  static async findAndCountAllActive(type: UserType, limit: number): Promise<CollectionQueryResult<User, number>> {
+    if (type === UserType.System) {
+      throw "System users are not allowed to be listed";
+    }
     var result = await UserModel.findAndCountAll({
-      limit: opt.limit
+      limit: limit,
+      where: {
+        type: User.typeToStr(type)
+      }
     });
     var items: User[] = [];
     result.rows.forEach((instance: UserInstance) => {
@@ -124,6 +135,18 @@ export class User extends ModelInstance<UserInstance> {
         return UserTypeStr.System;
     }
     return UserTypeStr.Unknown;
+  }
+
+  private static strToType(typeStr: string): UserType {
+    switch (typeStr) {
+      case UserTypeStr.Login:
+        return UserType.Login;
+      case UserTypeStr.Network:
+        return UserType.Network;
+      case UserTypeStr.System:
+        return UserType.System;
+    }
+    return null;
   }
 }
 

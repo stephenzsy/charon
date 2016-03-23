@@ -78,7 +78,7 @@ async function configure() {
     var rootUser: User = await User.findByUsername('root', Users.UserType.System);
     var networksUser: User = await User.findByUsername('networks', Users.UserType.System);
     if (networksUser) {
-      networksUser.delete();
+      networksUser.delete(true);
     }
     networksUser = await User.create(Users.UserType.System, 'networks', 'networks@system');
     var networks: NetworkInternal[] = [];

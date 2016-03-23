@@ -23,7 +23,7 @@ const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.Confi
 async function configure() {
   var rootUser: User = await User.findByUsername('root', Users.UserType.System);
   if (rootUser != null) {
-    rootUser.delete();
+    rootUser.delete(true);
   }
   rootUser = await User.create(Users.UserType.System, 'root', 'root@system');
   var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);

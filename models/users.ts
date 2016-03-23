@@ -33,7 +33,9 @@ export interface GetUserResult extends User {
   passwords?: UserPasswordMetadata[];
 }
 
-export interface ListUsersRequest extends CollectionRequest<number> { }
+export interface ListUsersRequest extends CollectionRequest<number> {
+  type: string;
+}
 
 export interface ListUsersResult extends CollectionResult<User, Number> { }
 

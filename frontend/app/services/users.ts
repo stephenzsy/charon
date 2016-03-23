@@ -1,6 +1,6 @@
 
 import * as angular from 'angular';
-import {User, ListUsersResult, CreateUserRequest, CreateUserResult, GetUserRequest, GetUserResult} from '../models/users';
+import {User, ListUsersRequest, ListUsersResult, CreateUserRequest, CreateUserResult, GetUserRequest, GetUserResult} from '../models/users';
 import {AuthTokenManager, CharonResourceClass, ServiceBase} from './base';
 
 interface UserResource extends angular.resource.IResource<User>, User { }
@@ -9,7 +9,7 @@ interface ListUsersResultResource extends angular.resource.IResource<ListUsersRe
 interface CreateUserResultResource extends angular.resource.IResource<CreateUserResult>, CreateUserResult { }
 
 interface UsersResourceClass extends CharonResourceClass {
-  list(): ListUsersResultResource;
+  list(request: ListUsersRequest): ListUsersResultResource;
   post(request: CreateUserRequest): CreateUserResultResource;
   getUser(request: GetUserRequest): GetUserResultResource;
 }
@@ -24,9 +24,9 @@ export class UsersService extends ServiceBase<UsersResourceClass> {
     });
   }
 
-  async listUsers(): Promise<ListUsersResult> {
+  async listUsers(type: string): Promise<ListUsersResult> {
     var service: UsersResourceClass = await this.getResource();
-    return service.list().$promise;
+    return service.list({ type: type, limit: 20 }).$promise;
   }
 
   async getUser(request: GetUserRequest): Promise<GetUserResult> {

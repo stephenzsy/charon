@@ -30,9 +30,17 @@ export module RequestValidations {
     return value;
   }
 
-  export function validateUUID(input: string, fieldName: string) {
+  export function validateUUID(input: string, fieldName: string): string {
     if (!validator.isUUID(input)) {
       throw new BadRequestError('Input parameter "' + fieldName + '" must be a valid UUID.');
     }
+    return input;
+  }
+
+  export function validateIsIn(fieldName: string, input: string, expectedIn: string[]): string {
+    if (!validator.isIn(input, expectedIn)) {
+      throw new BadRequestError('Input parameter "' + fieldName + '" must be one of [ ' + expectedIn.join(', ') + ' ]');
+    }
+    return input;
   }
 }

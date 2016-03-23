@@ -26,7 +26,7 @@ async function configure() {
 
     var siteUser: User = await User.findByUsername('site', Users.UserType.System);
     if (siteUser) {
-      await siteUser.delete();
+      await siteUser.delete(true);
     }
     siteUser = await User.create(Users.UserType.System, 'site', 'site@system');
     var siteCaSubject: CertSubject = new CertSubject(initCertsConfig.ca, initCertsConfig.siteCa);
@@ -38,7 +38,7 @@ async function configure() {
 
     var proxyUser: User = await User.findByUsername('proxy', Users.UserType.System);
     if (proxyUser) {
-      await proxyUser.delete();
+      await proxyUser.delete(true);
     }
     proxyUser = await User.create(Users.UserType.System, 'proxy', 'proxy@system');
     var proxyCaSubject: CertSubject = new CertSubject(initCertsConfig.ca, initCertsConfig.proxyCa);

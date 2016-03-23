@@ -35,20 +35,25 @@ async function getUserPasswords(user: User): Promise<UserPasswordMetadata[]> {
 
 class ListUsersEnactor extends ActionEnactor<ListUsersRequest, ListUsersResult> {
   async enactAsync(req: ListUsersRequest): Promise<ListUsersResult> {
-    return User.findAndCountAllActive({ limit: req.limit })
-      .then((result: CollectionQueryResult<User, number>): ListUsersResult => {
+    var userType: Users.UserType = null;
+    switch (req.type) {
+      case UserType.Login:
+        userType = Users.UserType.Login;
+      case UserType.Network:
+        userType = Users.UserType.Network;
+    }
+    var result: CollectionQueryResult<User, number> = await User.findAndCountAllActive(userType, req.limit);
+    return {
+      count: result.count,
+      items: result.items.map((user: User): IUser => {
         return {
-          count: result.count,
-          items: result.items.map((user: User): IUser => {
-            return {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              createdAt: user.createdAt
-            };
-          })
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          createdAt: user.createdAt
         };
-      });
+      })
+    };
   }
 }
 
@@ -159,8 +164,10 @@ export module Handlers {
     requestDeserializer: (req: express.Request): ListUsersRequest => {
       var _limit: string = req.query['limit'];
       var limit: number = RequestValidations.validateIsIntWithDefault(_limit, 'limit', 1, 500, 10);
+      var typeStr: string = RequestValidations.validateIsIn('type', req.query['type'], [UserType.Login, UserType.Network]);
       return {
-        limit: limit
+        limit: limit,
+        type: typeStr
       };
     },
     enactor: new ListUsersEnactor()
