@@ -11,14 +11,16 @@ import * as moment from 'moment';
 const _moment: moment.MomentStatic = require('moment');
 import * as validator from 'validator';
 
-import {SyncActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
+import {ActionEnactor, RequestDeserializer, HandlerUtils} from '../../../lib/event/event-handler';
 import {TokenContext} from '../../../lib/models/app-configs';
 import {AuthTokenConfig} from '../../../lib/config/config';
 import {TokenScope} from '../../../models/common';
 import {ErrorCodes} from '../../../models/errors';
 import {GetTokenRequest, GetTokenResult} from '../../../models/auth';
-import {BadRequestError, AuthorizationError} from '../../../lib/models/errors';
+import {BadRequestError, AuthenticationError, AuthorizationError} from '../../../lib/models/errors';
 import AppConfig from '../../../lib/config/config';
+import User from '../../../lib/models/users';
+import Cert from '../../../lib/models/certs';
 
 var tokenConfig: AuthTokenConfig = AppConfig.authTokenConfig;
 
@@ -26,8 +28,27 @@ interface GetTokenRequestInternal extends GetTokenRequest {
   certSerial: number;
 }
 
-export class GetTokenEnactor extends SyncActionEnactor<GetTokenRequestInternal, GetTokenResult>{
-  enactSync(req: GetTokenRequestInternal): GetTokenResult {
+export class GetTokenEnactor extends ActionEnactor<GetTokenRequestInternal, GetTokenResult>{
+
+  private async getAuthenticatedUser(certificateSerial: number): Promise<User> {
+    var cert: Cert = await Cert.findBySerial(certificateSerial);
+    if (!cert) {
+      throw new AuthenticationError(ErrorCodes.Authentication.AuthenticationFailure, 'Invalid certificate with serial: ' + certificateSerial);
+    }
+    var user: User = await cert.getUser();
+    if (!user) {
+      throw new AuthenticationError(ErrorCodes.Authentication.AuthenticationFailure, 'Unable to resolve certificate to a user with certificate serial: ' + certificateSerial);
+    }
+    return user;
+
+  }
+
+  async enactAsync(req: GetTokenRequestInternal): Promise<GetTokenResult> {
+    var user = await this.getAuthenticatedUser(req.certSerial);
+    var authorizedScopes: string[] = await user.getPermissionScopes();
+    if (authorizedScopes.indexOf(req.scope) < 0) {
+      throw new AuthorizationError(ErrorCodes.Authorization.InsufficientPrivileges, 'User (' + user.username + ') does not have permission to request token with scope: ' + req.scope);
+    }
     var token = jwt.sign(
       <TokenContext>{ scope: req.scope },
       tokenConfig.privateKey, {
@@ -59,12 +80,12 @@ export module Handlers {
         }
       }
       var serialStr: string = req.get('x-ssl-client-serial');
-      if (!validator.isInt(serialStr)) {
-        throw new AuthorizationError(ErrorCodes.Authorization.AuthorizationRequired, 'Invalid client certificate serial: ' + serialStr);
+      if (!validator.isHexadecimal(serialStr)) {
+        throw new AuthenticationError(ErrorCodes.Authentication.AuthenticationRequired, 'Invalid client certificate serial: ' + serialStr);
       }
       return {
         scope: scope,
-        certSerial: validator.toInt(serialStr)
+        certSerial: validator.toInt(serialStr, 16)
       };
     },
     skipAuthorization: true,

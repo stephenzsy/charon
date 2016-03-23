@@ -9,7 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import {TokenContext} from '../models/app-configs';
 import AppConfig, {AuthTokenConfig} from '../config/config';
 
-import {AuthorizationError, UserError, ConflictResourceError, ResourceNotFoundError} from '../models/errors';
+import {AuthenticationError, AuthorizationError, UserError, ConflictResourceError, ResourceNotFoundError} from '../models/errors';
 import {TokenScope} from '../../models/common';
 import {ErrorCodes} from '../../models/errors';
 
@@ -21,6 +21,9 @@ interface Event {
   isTerminal: boolean;
   expressReq?: express.Request;
   expressRes?: express.Response;
+  authentication?: {
+    err?: AuthenticationError;
+  },
   authorization?: {
     err?: AuthorizationError;
     tokenContext?: TokenContext;
@@ -166,6 +169,10 @@ class AsyncRequestModelHandler<TInput, TOutput> implements EventHandler {
           event.expressRes.status(404).send(err.jsonObj);
         } else if (err instanceof ConflictResourceError) {
           event.expressRes.status(409).send(err.jsonObj);
+        } else if (err instanceof AuthenticationError) {
+          event.expressRes.status(401).send(err.jsonObj);
+        } else if (err instanceof AuthorizationError) {
+          event.expressRes.status(403).send(err.jsonObj);
         } else {
           event.expressRes.status(400).send(err.jsonObj);
         }
@@ -214,9 +221,10 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
 
   async before(event: Event): Promise<Event> {
     event.authorization = {};
+    event.authentication = {};
     var token: string = event.expressReq.get('x-access-token') || event.expressReq.query['token'];
     if (!token) {
-      event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.AuthorizationRequired, "Authorization token is required");
+      event.authentication.err = new AuthenticationError(ErrorCodes.Authorization.AuthorizationRequired, "Authorization token is required");
       event.isTerminal = true;
       return event;
     }
@@ -225,9 +233,9 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
       tokenContext = await Q.nfcall<TokenContext>(jwt.verify, token, this.authTokenConfig.publicKey);
     } catch (err) {
       if (err && err.name === 'TokenExpiredError') {
-        event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
+        event.authentication.err = new AuthenticationError(ErrorCodes.Authorization.TokenExpired, "Expired authorization token");
       } else {
-        event.authorization.err = new AuthorizationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
+        event.authentication.err = new AuthenticationError(ErrorCodes.Authorization.InvalidToken, "Invalid authorization token");
       }
       event.isTerminal = true;
       return event;
@@ -242,7 +250,11 @@ class JsonWebTokenAuthorizationHandler implements EventHandler {
   }
 
   async after(event: Event): Promise<Event> {
-    if (event.authorization && event.authorization.err) {
+    if (event.authentication && event.authentication.err) {
+      var err = event.authentication.err;
+      event.expressRes.status(401).send(err.jsonObj);
+    }
+    else if (event.authorization && event.authorization.err) {
       var err = event.authorization.err;
       event.expressRes.status(403).send(err.jsonObj);
     }

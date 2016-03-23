@@ -4,6 +4,11 @@ export interface UserError {
 }
 
 export module ErrorCodes {
+  export module Authentication {
+    export const AuthenticationRequired: string = 'AuthenticationRequired';
+    export const AuthenticationFailure: string = 'AuthenticationFailure';
+  }
+
   export module Authorization {
     export const InsufficientPrivileges: string = 'InsufficientPrivileges';
     export const InvalidToken: string = 'InvalidToken';

@@ -5,8 +5,9 @@ import Constants from '../constants';
 import {UserModel, PasswordModel, CertModel} from '../db/index';
 import {ModelInstance} from './common';
 import {CertInstance, CertInternal, CertTypeStr, CertStateStr} from '../db/certs';
+import {UserInstance} from '../db/users';
 import {Network} from './networks';
-import {User} from './users';
+import User from './users';
 
 export interface CertBundle {
   certificateBody: string;
@@ -92,6 +93,14 @@ function certTypeToStr(type: CertType): string {
 
 export class Cert extends ModelInstance<CertInstance> {
 
+  async getUser(): Promise<User> {
+    var userInstance: UserInstance = await this.instance.getUser();
+    if (userInstance) {
+      return new User(userInstance);
+    }
+    return null;
+  }
+
   static async findBySerial(serial: number): Promise<Cert> {
     var instance: CertInstance = await CertModel.findById(serial);
     if (instance) {
@@ -121,3 +130,5 @@ export class Cert extends ModelInstance<CertInstance> {
     await CertModel.destroy({ where: { type: CertTypeStr.Server } });
   }
 }
+
+export default Cert;

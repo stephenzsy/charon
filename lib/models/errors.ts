@@ -31,8 +31,9 @@ export class UserError extends BaseError {
   }
 }
 
-export class AuthorizationError extends UserError {
-}
+export class AuthenticationError extends UserError { }
+
+export class AuthorizationError extends UserError { }
 
 export class ResourceNotFoundError extends UserError {
   constructor(message: string) {

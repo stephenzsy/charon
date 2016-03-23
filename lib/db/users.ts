@@ -35,6 +35,7 @@ export interface UserInstance extends Sequelize.Instance<UserInstance, UserInter
     }
   }): Promise<CertInstance[]>;
 
+  getPermissions(): Promise<PermissionInstance[]>;
   setPermissions(permissions: PermissionInstance[]): Promise<void>;
 }
 

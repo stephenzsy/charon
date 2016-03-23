@@ -30,11 +30,11 @@ export interface CertInternal extends CommonDataInternal {
   state: string;
   networkId: string;
   subject: string;
-  user: UserInternal;
 }
 
 export interface CertInstance extends Sequelize.Instance<CertInstance, CertInternal>, CertInternal {
   setUser(user: UserInstance): Promise<CertInstance>;
+  getUser(): Promise<UserInstance>;
 }
 
 export type CertModel = Sequelize.Model<CertInstance, CertInternal>;

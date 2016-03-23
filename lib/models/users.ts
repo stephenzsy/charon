@@ -33,6 +33,13 @@ export class User extends ModelInstance<UserInstance> {
     return this.instance.updatedAt;
   }
 
+  async getPermissionScopes(): Promise<string[]> {
+    var permissions: PermissionInstance[] = await this.instance.getPermissions();
+    return permissions.map(permission => {
+      return permission.scope;
+    });
+  }
+
   async setPermissionScopes(scopes: string[]): Promise<void> {
     var permissions: PermissionInstance[] = await Promise.all(scopes.map(scope => {
       return PermissionModel.create({ scope: scope });
