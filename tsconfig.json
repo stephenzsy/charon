@@ -8,5 +8,8 @@
   ],
   "formatCodeOptions": {
     "indentSize": 2
+  },
+  "paths": {
+    "charon": "./"
   }
 }

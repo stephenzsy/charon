@@ -30,3 +30,7 @@ export async function createBase62Password(length: number, lowercase: boolean = 
   }
   return password;
 }
+
+export default {
+  createBase62Password: createBase62Password
+}

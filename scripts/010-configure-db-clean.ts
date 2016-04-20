@@ -3,18 +3,16 @@
 
 import 'babel-polyfill';
 
-import {configure as base} from './configure-db';
-import * as db from '../lib/db/index';
+import * as db from 'charon/lib/db/index';
 
 async function configure() {
   try {
     await db.charonSequelize.drop();
+    db.charonSequelize.close();
   } catch (e) {
     console.error(e);
     throw e;
   }
-  return base();
-
 }
 
 configure();

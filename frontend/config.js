@@ -14,10 +14,10 @@ System.config({
   },
 
   map: {
-    "angular": "github:angular/bower-angular@1.5.2",
+    "angular": "github:angular/bower-angular@1.5.5",
     "angular-material": "github:angular/bower-material@1.0.3",
-    "angular-resource": "github:angular/bower-angular-resource@1.5.2",
-    "angular-route": "github:angular/bower-angular-route@1.5.2",
+    "angular-resource": "github:angular/bower-angular-resource@1.5.5",
+    "angular-route": "github:angular/bower-angular-route@1.5.5",
     "babel": "npm:babel-core@5.8.38",
     "babel-polyfill": "npm:babel-polyfill@6.7.4",
     "babel-preset-es2015": "npm:babel-preset-es2015@6.3.13",
@@ -25,18 +25,18 @@ System.config({
     "bootstrap": "github:twbs/bootstrap@3.3.6",
     "core-js": "npm:core-js@1.2.6",
     "css": "github:systemjs/plugin-css@0.1.20",
-    "jquery": "npm:jquery@2.2.2",
+    "jquery": "npm:jquery@2.2.3",
     "github:angular/bower-angular-animate@1.4.9": {
       "angular": "github:angular/bower-angular@1.5.2"
     },
     "github:angular/bower-angular-aria@1.4.9": {
       "angular": "github:angular/bower-angular@1.5.2"
     },
-    "github:angular/bower-angular-resource@1.5.2": {
-      "angular": "github:angular/bower-angular@1.5.2"
+    "github:angular/bower-angular-resource@1.5.5": {
+      "angular": "github:angular/bower-angular@1.5.5"
     },
-    "github:angular/bower-angular-route@1.5.2": {
-      "angular": "github:angular/bower-angular@1.5.2"
+    "github:angular/bower-angular-route@1.5.5": {
+      "angular": "github:angular/bower-angular@1.5.5"
     },
     "github:angular/bower-material@1.0.3": {
       "angular": "github:angular/bower-angular@1.5.2",
@@ -108,7 +108,7 @@ System.config({
       "vm-browserify": "npm:vm-browserify@0.0.4"
     },
     "github:twbs/bootstrap@3.3.6": {
-      "jquery": "github:components/jquery@2.2.1"
+      "jquery": "npm:jquery@2.2.3"
     },
     "npm:amdefine@1.0.0": {
       "fs": "github:jspm/nodelibs-fs@0.1.2",
@@ -344,7 +344,7 @@ System.config({
     "npm:babel-polyfill@6.7.4": {
       "babel-regenerator-runtime": "npm:babel-regenerator-runtime@6.5.0",
       "babel-runtime": "npm:babel-runtime@5.8.38",
-      "core-js": "npm:core-js@2.2.1",
+      "core-js": "npm:core-js@2.2.2",
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:babel-preset-es2015@6.3.13": {
@@ -511,7 +511,7 @@ System.config({
       "process": "github:jspm/nodelibs-process@0.1.2",
       "systemjs-json": "github:systemjs/plugin-json@0.1.0"
     },
-    "npm:core-js@2.2.1": {
+    "npm:core-js@2.2.2": {
       "fs": "github:jspm/nodelibs-fs@0.1.2",
       "path": "github:jspm/nodelibs-path@0.1.0",
       "process": "github:jspm/nodelibs-process@0.1.2",

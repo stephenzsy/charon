@@ -3,7 +3,7 @@
 
 import 'babel-polyfill';
 
-import * as db from '../lib/db/index';
+import * as db from 'charon/lib/db/index';
 
 export async function configure() {
   try {

@@ -14,7 +14,7 @@ export interface PermissionInternal extends CommonDataInternal {
   scope: string;
 }
 
-export interface PermissionInstance extends Sequelize.Instance<PermissionInstance, PermissionInternal>, PermissionInternal { }
+export interface PermissionInstance extends Sequelize.Instance<PermissionInternal>, PermissionInternal { }
 
 export type PermissionModel = Sequelize.Model<PermissionInstance, PermissionInternal>;
 

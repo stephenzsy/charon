@@ -20,7 +20,7 @@ export interface PasswordInternal extends CommonDataInternal {
   active: boolean;
 }
 
-export interface PasswordInstance extends Sequelize.Instance<PasswordInstance, PasswordInternal>, PasswordInternal {
+export interface PasswordInstance extends Sequelize.Instance<PasswordInternal>, PasswordInternal {
   getUser(): Promise<UserInstance>;
   setUser(user: UserInstance): Promise<PasswordInstance>;
 }

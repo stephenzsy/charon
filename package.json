@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/wwws"
+    "start": "node ./bin/wwws",
+    "test": "swagger project test"
   },
   "dependencies": {
     "babel-polyfill": "^6.7.4",
-    "big-integer": "^1.6.12",
+    "big-integer": "^1.6.15",
     "body-parser": "^1.15.0",
     "commander": "^2.9.0",
     "cookie-parser": "^1.4.1",
@@ -16,13 +17,14 @@
     "express": "^4.13.4",
     "fs-extra": "^0.26.7",
     "jsonwebtoken": "^5.7.0",
-    "moment": "^2.12.0",
+    "jspm": "^0.16.33",
+    "moment": "^2.13.0",
     "morgan": "^1.7.0",
     "mysql": "^2.10.2",
     "node-uuid": "^1.4.7",
-    "nsp": "^2.2.1",
+    "nsp": "^2.3.0",
     "q": "^1.4.1",
-    "sequelize": "^3.19.3",
+    "sequelize": "^3.21.0",
     "serve-favicon": "~2.3.0",
     "validator": "^4.9.0"
   },
@@ -35,18 +37,20 @@
     "gulp-babel": "^6.1.2",
     "gulp-rename": "^1.2.2",
     "gulp-sym": "0.0.14",
-    "gulp-typescript": "^2.12.1",
+    "gulp-typescript": "^2.13.0",
     "jspm": "^0.16.31",
     "live-server": "^0.8.2",
+    "should": "^7.1.0",
+    "supertest": "^1.0.0",
     "tsd": "^0.6.5",
-    "typescript": "^1.8.9"
+    "typescript": "^1.8.10"
   },
   "jspm": {
     "directories": {
       "baseURL": "frontend"
     },
     "dependencies": {
-      "angular": "github:angular/bower-angular@^1.5.2",
+      "angular": "github:angular/bower-angular@^1.5.5",
       "angular-resource": "github:angular/bower-angular-resource@^1.5.2",
       "angular-route": "github:angular/bower-angular-route@^1.5.2",
       "babel-polyfill": "npm:babel-polyfill@^6.7.4",

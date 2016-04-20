@@ -32,7 +32,7 @@ export interface CertInternal extends CommonDataInternal {
   subject: string;
 }
 
-export interface CertInstance extends Sequelize.Instance<CertInstance, CertInternal>, CertInternal {
+export interface CertInstance extends Sequelize.Instance<CertInternal>, CertInternal {
   setUser(user: UserInstance): Promise<CertInstance>;
   getUser(): Promise<UserInstance>;
 }
@@ -51,7 +51,7 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
   }
 
   protected createModelAttributes(): Sequelize.DefineAttributes {
-    var attributes: Sequelize.DefineAttributes = {};
+    var attributes: Sequelize.DefineAttributes = super.createModelAttributes();
     attributes[Columns.TYPE] = {
       type: Sequelize.ENUM([
         CertTypeStr.CA,

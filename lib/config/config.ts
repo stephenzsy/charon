@@ -18,6 +18,7 @@ export interface NetworkInternal extends Network {
 
 export interface DbConfig {
   user: string;
+  password: string;
   host: string;
   ssl: {
     key: string;

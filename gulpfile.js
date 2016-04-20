@@ -83,7 +83,9 @@ gulp.task('tsc-frontend', ['copy-models-frontend'], function() {
 gulp.task('tsc', function() {
   var tsProject = ts.createProject(path.join(__dirname, 'tsconfig.json'));
   return gulp.src([
+      'app.ts',
       'models/**/*.ts',
+      'api/**/*.ts',
       'app/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',

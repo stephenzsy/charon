@@ -45,19 +45,19 @@
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
     },
     "validator/validator.d.ts": {
-      "commit": "a44529fcb1e1cdc0355e71c42a6048de99b57c34"
+      "commit": "544a35a10866b32afda9c7f029c0764558563f4f"
     },
     "mysql/mysql.d.ts": {
       "commit": "a6ff9f6e195a334afd89e4b721d05e9520eee4c0"
     },
     "bluebird/bluebird.d.ts": {
-      "commit": "a44529fcb1e1cdc0355e71c42a6048de99b57c34"
+      "commit": "544a35a10866b32afda9c7f029c0764558563f4f"
     },
     "sequelize/sequelize.d.ts": {
-      "commit": "a44529fcb1e1cdc0355e71c42a6048de99b57c34"
+      "commit": "544a35a10866b32afda9c7f029c0764558563f4f"
     },
     "lodash/lodash.d.ts": {
-      "commit": "a44529fcb1e1cdc0355e71c42a6048de99b57c34"
+      "commit": "544a35a10866b32afda9c7f029c0764558563f4f"
     },
     "jsonwebtoken/jsonwebtoken.d.ts": {
       "commit": "dc9dabe74a5be62613b17a3605309783a12ff28a"

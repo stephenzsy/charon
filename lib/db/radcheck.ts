@@ -36,7 +36,7 @@ export interface RadcheckInternal {
   value: string;
 }
 
-export interface RadcheckInstance extends Sequelize.Instance<RadcheckInstance, RadcheckInternal>, RadcheckInternal {
+export interface RadcheckInstance extends Sequelize.Instance<RadcheckInternal>, RadcheckInternal {
 }
 
 export type RadcheckModel = Sequelize.Model<RadcheckInstance, RadcheckInternal>

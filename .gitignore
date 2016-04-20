@@ -11,3 +11,4 @@ public/javascripts/app/**/*.js
 *.log
 config/generated
 config/init
+app.js

@@ -27,7 +27,7 @@ export interface UserInternal extends CommonDataInternal {
   updatedAt?: Date;
 }
 
-export interface UserInstance extends Sequelize.Instance<UserInstance, UserInternal>, UserInternal {
+export interface UserInstance extends Sequelize.Instance<UserInternal>, UserInternal {
   getCerts(options: {
     where: {
       type: string;
