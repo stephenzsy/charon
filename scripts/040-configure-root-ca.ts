@@ -24,6 +24,7 @@ const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.Confi
 
 async function configure() {
   var systemUsers: SystemUsers = await getSystemUsers();
+  void systemUsers.root.deleteCaCerts(null);
   var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);
   await RootCaCertsManager.createRootCaCert(caSubject.subject, systemUsers.root);
   charonSequelize.close();

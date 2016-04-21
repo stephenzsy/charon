@@ -115,6 +115,10 @@ export class Cert extends ModelInstance<CertInstance> {
     return this;
   }
 
+  async delete(): Promise<void> {
+    return this.instance.destroy();
+  }
+
   static async createPending(type: CertType, subject: string, network: Network, user: User): Promise<Cert> {
     var instance: CertInstance = await CertModel.create(<CertInternal>{
       type: certTypeToStr(type),

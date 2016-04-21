@@ -8,7 +8,7 @@ import {CertTypeStr, CertInstance} from '../db/certs';
 import {ModelInstance, CollectionQueryResult} from './common';
 import {UserInternal, UserInstance, UserTypeStr} from '../db/users';
 import {PermissionInstance} from '../db/permissions';
-import {Network} from './networks';
+import Network from './networks';
 
 export enum UserType {
   Login,
@@ -62,9 +62,25 @@ export class User extends ModelInstance<UserInstance> {
       where: whereClause
     });
     if (certs.length != 1) {
-      throw 'No CA or more than 1 certs found'
+      return null;
     }
     return certs[0].id;
+  }
+
+  async deleteCaCerts(network: Network): Promise<number> {
+    var whereClause = {
+      type: CertTypeStr.CA
+    };
+    if (network) {
+      whereClause['networkId'] = network.id;
+    }
+    var certs: CertInstance[] = await this.instance.getCerts({
+      where: whereClause
+    });
+    for (var i = 0; i < certs.length; ++i) {
+      await certs[i].destroy();
+    }
+    return certs.length;
   }
 
   async delete(force: boolean = false): Promise<void> {

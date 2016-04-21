@@ -56,9 +56,6 @@ export function signIntermediateCa(
       '-cert', caCertificateInputPath,
       '-days', days.toString()
     ];
-
-    console.log(params.join(" "));
-    console.log(caBundleDir);
     child_process.execFile('openssl', params, {
       cwd: caBundleDir
     }, (err, stdout, stderr) => {

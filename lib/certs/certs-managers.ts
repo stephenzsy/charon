@@ -94,6 +94,9 @@ export class RootCaCertsManager extends CertsManager {
     var csrPath: string = path.join(certsDir, prefix + '.csr');
     await Utils.createCsr(bundle.privateKeyFile, subject, csrPath);
     var hexSerial: string = serial.toString(16).toUpperCase();
+    if (hexSerial.length < 2) {
+      hexSerial = '0' + hexSerial;
+    }
 
     await Utils.writeFile(path.join(this.ca.bundleDirectory, 'serial'), hexSerial);
     await Utils.writeFile(path.join(this.ca.bundleDirectory, 'index.txt'), '');
@@ -131,6 +134,7 @@ export class RootCaCertsManager extends CertsManager {
     await Utils.createRootCaCert(bundle.privateKeyFile, bundle.certificateFile, result.serial, subject);
     await this.saveCertBundleConfig(path.join(bundle.bundleDirectory, 'bundle.json'), bundle);
     await this.saveCertBundleConfig(PathRootCaBundleConfig, bundle);
+
     await result.cert.markAsActive();
     return bundle;
   }

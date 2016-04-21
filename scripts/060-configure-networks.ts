@@ -22,6 +22,7 @@ import {CertFileBundle} from '../lib/models/certs';
 import User, * as Users from '../lib/models/users';
 import {InitCertsConfig} from '../models/init';
 import {Constants as ConfigConstants, NetworkInternal} from '../lib/config/config';
+import {SystemUsers, getSystemUsers} from 'charon/scripts/utils';
 
 const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 const initNetworksConfig: NetworkConfig[] = require(path.join(ConfigConstants.ConfigInitDir, 'networks-config.json'));
@@ -74,17 +75,12 @@ async function configureNetwork(config: NetworkConfig, networksUser: User, rootU
 }
 
 async function configure() {
+  var systemUsers: SystemUsers = await getSystemUsers();
   try {
-    var rootUser: User = await User.findByUsername('root', Users.UserType.System);
-    var networksUser: User = await User.findByUsername('networks', Users.UserType.System);
-    if (networksUser) {
-      networksUser.delete(true);
-    }
-    networksUser = await User.create(Users.UserType.System, 'networks', 'networks@system');
     var networks: NetworkInternal[] = [];
     for (var i = 0; i < initNetworksConfig.length; ++i) {
       var config: NetworkConfig = initNetworksConfig[i];
-      networks.push(await configureNetwork(config, networksUser, rootUser));
+      networks.push(await configureNetwork(config, systemUsers.network, systemUsers.root));
     }
     db.radiusSequelize.close();
     db.charonSequelize.close();

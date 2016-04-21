@@ -34,6 +34,7 @@ export interface UserInstance extends Sequelize.Instance<UserInternal>, UserInte
       networkId?: string;
     }
   }): Promise<CertInstance[]>;
+  removeCerts(certs: CertInstance[]): Promise<void>;
 
   getPermissions(): Promise<PermissionInstance[]>;
   setPermissions(permissions: PermissionInstance[]): Promise<void>;
