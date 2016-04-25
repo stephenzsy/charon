@@ -3,6 +3,7 @@ import {User, ListUsersRequest, ListUsersResult, GetUserResult, UserType} from '
 import {Network} from '../models/networks';
 import {UserPasswordMetadata, CreateUserPasswordResult} from '../models/secrets';
 import {CharonServices, charonServicesName} from '../services/services';
+import {UserError, ErrorCodes} from '../models/errors';
 
 interface AddUserFormController extends angular.IFormController {
 
@@ -15,6 +16,7 @@ interface UsersControllerScope extends angular.IScope {
     email?: string;
   };
   addUserSubmit(): void;
+  addUserErrorMessage?: string;
   users: User[];
 }
 
@@ -29,18 +31,27 @@ class UsersController {
     $scope.addUserSubmit = () => {
       this.createUser();
     }
-    this.listusers()
+    this.listUsers();
   }
 
   private async createUser() {
-    return await this.charonServices.users.createUser({
-      username: this.$scope.addUserContext.username,
-      email: this.$scope.addUserContext.email,
-      type: UserType.Network
-    });
+    delete this.$scope.addUserErrorMessage;
+    try {
+      var user: User = await this.charonServices.users.createUser({
+        username: this.$scope.addUserContext.username,
+        email: this.$scope.addUserContext.email,
+        type: UserType.Network
+      });
+      this.$scope.users.push(user);
+    } catch (err) {
+      var userError: UserError = <UserError>err.data;
+      this.$scope.addUserErrorMessage = userError.message;
+    } finally {
+      this.$scope.$apply();
+    }
   }
 
-  private async listusers() {
+  private async listUsers() {
     var result: ListUsersResult = await this.charonServices.users.listUsers(UserType.Network);
     this.$scope.users = result.items;
     this.$scope.$apply();

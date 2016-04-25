@@ -6,6 +6,7 @@
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#panel-add-user">Add new user</button>
   </p>
   <form name="addUserForm" ng-submit="addUserSubmit()" class="panel panel-default collapse" id="panel-add-user">
+    <div class="alert alert-danger" ng-if="addUserErrorMessage">{{addUserErrorMessage}}</div>
     <div class="panel-body">
       <div class="form-group">
         <label for="text-input-username">Username</label>

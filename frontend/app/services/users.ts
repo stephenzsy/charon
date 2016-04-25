@@ -36,18 +36,12 @@ export class UsersService extends ServiceBase<UsersResourceClass> {
 
   async createUser(request: CreateUserRequest): Promise<User> {
     var service: UsersResourceClass = await this.getResource();
-    try {
-      var result: CreateUserResult = await service.post(request).$promise;
-      return {
-        id: result.id,
-        createdAt: result.createdAt,
-        username: request.username,
-        email: request.email
-      };
-    } catch (err) {
-      console.log(err);
-      throw err;
-    }
+    var result: CreateUserResult = await service.post(request).$promise;
+    return {
+      id: result.id,
+      createdAt: result.createdAt,
+      username: request.username,
+      email: request.email
+    };
   }
-
 }

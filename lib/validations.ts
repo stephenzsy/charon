@@ -1,6 +1,7 @@
 ///<reference path="../typings/validator/validator.d.ts"/>
 
 import * as validator from 'validator';
+import {ErrorCodes} from '../models/errors';
 import {BadRequestError} from './models/errors';
 
 export module RequestValidations {
@@ -12,7 +13,7 @@ export module RequestValidations {
 
   export function validateIsEmail(input: string, fieldName: string) {
     if (!validator.isEmail(input)) {
-      throw new BadRequestError('A valid email address is required for input parameter "' + fieldName + '".');
+      throw new BadRequestError('A valid email address is required for input parameter "' + fieldName + '".', ErrorCodes.Users.Create.InvalidEmail);
     }
   }
 

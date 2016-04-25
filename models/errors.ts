@@ -19,4 +19,10 @@ export module ErrorCodes {
   export const BadRequest: string = 'BadRequest';
   export const ResourceNotFound: string = 'ResourceNotFound';
   export const ConflictResource: string = 'ConflictResource';
+  
+  export module Users {
+    export module Create {
+      export const InvalidEmail = ErrorCodes.BadRequest + '.InvalidEmail';
+    }
+  }
 }

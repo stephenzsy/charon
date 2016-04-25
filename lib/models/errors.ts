@@ -48,7 +48,7 @@ export class ConflictResourceError extends UserError {
 }
 
 export class BadRequestError extends UserError {
-  constructor(message: string) {
+  constructor(message: string, code: string = Contracts.ErrorCodes.BadRequest) {
     super(Contracts.ErrorCodes.BadRequest, message);
   }
 }
