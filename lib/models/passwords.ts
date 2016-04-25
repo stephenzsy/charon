@@ -4,7 +4,7 @@ import * as sequelize from 'sequelize';
 import * as moment from 'moment';
 const _moment: moment.MomentStatic = require('moment');
 
-import {UserModel, PasswordModel, getRadcheckModel} from '../db/index';
+import {UserModel, PasswordModel, getRadcheckModel, sqlRadius} from '../db/index';
 import {Columns as CommonColumns} from '../db/common';
 import {PasswordInternal, PasswordInstance, Columns as PasswordColumns} from '../db/passwds';
 import {UserInstance} from '../db/users';
@@ -45,7 +45,7 @@ export class Password extends ModelInstance<PasswordInstance> {
     if (this.validTo <= new Date()) {
       return false;
     }
-    var model = getRadcheckModel(this.network.radcheckTableName);
+    var model = getRadcheckModel(sqlRadius, this.network.radcheckTableName);
     var user: User = await this.getUser();
     await model.destroy({
       where: {

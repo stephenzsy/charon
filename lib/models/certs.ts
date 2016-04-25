@@ -77,7 +77,7 @@ export enum CertType {
   Client
 }
 
-function certTypeToStr(type: CertType): string {
+export function certTypeToStr(type: CertType): string {
   switch (type) {
     case CertType.CA:
       return CertTypeStr.CA;

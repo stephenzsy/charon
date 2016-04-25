@@ -3,8 +3,8 @@
 
 import 'babel-polyfill';
 
-import * as db from 'charon/lib/db/index';
-import User, * as Users from 'charon/lib/models/users';
+import {sqlCharon} from '../lib/db/index';
+import User, * as Users from '../lib/models/users';
 
 async function createSystemUser(username: string): Promise<User> {
     var user: User = await User.findByUsername(username, Users.UserType.System);
@@ -19,8 +19,7 @@ async function configure() {
     await createSystemUser('site');
     await createSystemUser('proxy');
     await createSystemUser('network');
-    await createSystemUser('db');
-    db.charonSequelize.close();
+    sqlCharon.sql.close();
 }
 
 configure();

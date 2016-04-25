@@ -12,7 +12,7 @@ import * as fsExtra from 'fs-extra';
 import {SystemUsers, getSystemUsers} from './utils';
 
 import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
-import {CertSubject} from '../lib/models/certs';
+import {CertSubject, CertType} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
 import {charonSequelize} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
@@ -24,7 +24,7 @@ const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.Confi
 
 async function configure() {
   var systemUsers: SystemUsers = await getSystemUsers();
-  void systemUsers.root.deleteCaCerts(null);
+  void systemUsers.root.deleteCerts(CertType.CA, null);
   var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);
   await RootCaCertsManager.createRootCaCert(caSubject.subject, systemUsers.root);
   charonSequelize.close();

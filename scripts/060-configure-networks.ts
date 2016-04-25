@@ -22,7 +22,8 @@ import {CertFileBundle} from '../lib/models/certs';
 import User, * as Users from '../lib/models/users';
 import {InitCertsConfig} from '../models/init';
 import {Constants as ConfigConstants, NetworkInternal} from '../lib/config/config';
-import {SystemUsers, getSystemUsers} from 'charon/scripts/utils';
+import {SystemUsers, getSystemUsers} from '../scripts/utils';
+import {sqlCharonSetup, sqlRadiusSetup} from './init';
 
 const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 const initNetworksConfig: NetworkConfig[] = require(path.join(ConfigConstants.ConfigInitDir, 'networks-config.json'));
@@ -32,7 +33,7 @@ var counter: number = 0;
 var portBase: number = 10000;
 async function configureNetwork(config: NetworkConfig, networksUser: User, rootUser: User): Promise<NetworkInternal> {
   var radcheckTableName: string = 'radcheck' + (++counter);
-  var radcheckModel = db.getRadcheckModel(radcheckTableName);
+  var radcheckModel = db.getRadcheckModel(sqlRadiusSetup, radcheckTableName);
 
   await radcheckModel.sync({ force: true });
 
@@ -82,7 +83,7 @@ async function configure() {
       var config: NetworkConfig = initNetworksConfig[i];
       networks.push(await configureNetwork(config, systemUsers.network, systemUsers.root));
     }
-    db.radiusSequelize.close();
+    sqlRadiusSetup.sql.close();
     db.charonSequelize.close();
     fsExtra.writeJsonSync(path.join(ConfigConstants.ConfigDir, 'networks-config.json'), networks);
   } catch (e) {

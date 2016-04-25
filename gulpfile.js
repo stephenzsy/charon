@@ -89,7 +89,7 @@ gulp.task('tsc', function() {
       'app/**/*.ts',
       'lib/**/*.ts',
       'routes/**/*.ts',
-      'scripts/**/*.ts',
+      'scripts/**/*.ts'
     ], {
       base: './'
     })

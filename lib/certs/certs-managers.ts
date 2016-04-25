@@ -9,7 +9,7 @@ import {Constants as AppConfigConstants} from '../config/config';
 import * as Q from 'q';
 import {Cert, CertType, CertBundle, CertFileBundle} from '../models/certs';
 import {Network} from '../models/networks';
-import User from '../models/users';
+import User from 'charon/lib/models/users';
 
 import * as Utils from './utils';
 import {createBase62Password} from '../secrets/utils';

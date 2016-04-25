@@ -3,6 +3,7 @@
 import * as Q from 'q';
 var _Q = require('q');
 
+import Cert, {CertType, certTypeToStr} from "./certs";
 import {UserModel, PermissionModel} from '../db/index';
 import {CertTypeStr, CertInstance} from '../db/certs';
 import {ModelInstance, CollectionQueryResult} from './common';
@@ -67,9 +68,9 @@ export class User extends ModelInstance<UserInstance> {
     return certs[0].id;
   }
 
-  async deleteCaCerts(network: Network): Promise<number> {
+  async deleteCerts(certType: CertType, network: Network): Promise<number> {
     var whereClause = {
-      type: CertTypeStr.CA
+      type: certTypeToStr(certType)
     };
     if (network) {
       whereClause['networkId'] = network.id;

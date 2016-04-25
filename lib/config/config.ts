@@ -20,11 +20,6 @@ export interface DbConfig {
   user: string;
   password: string;
   host: string;
-  ssl: {
-    key: string;
-    cert: string;
-    ca: string;
-  }
 }
 
 export module Constants {
@@ -34,6 +29,7 @@ export module Constants {
   export const ConfigCertsDir: string = path.join(ConfigDir, 'certs');
   export const FreeradiusDir: string = path.join(ConfigDir, 'freeradius');
   export const DbConfig: string = path.join(ConfigDir, 'mysql.json');
+  export const MysqldConfig: string = path.join(ConfigDir, 'mysqld.cnf');
   export const PathAuthTokenConfig: string = path.join(ConfigDir, 'auth-token.json');
   export const PathNetworksConfig: string = path.join(ConfigDir, 'networks-config.json');
   export const NginxDir: string = path.join(ConfigDir, 'nginx');
@@ -58,6 +54,10 @@ export class AppConfig {
       this._networksConfig = AppConfig.loadConfig<NetworkInternal[]>(Constants.PathNetworksConfig);
     }
     return this._networksConfig;
+  }
+  
+  get dbConfig(): DbConfig {
+     return AppConfig.loadConfig<DbConfig>(Constants.DbConfig);
   }
 
   saveAuthTokenConfig(config: AuthTokenConfig) {
