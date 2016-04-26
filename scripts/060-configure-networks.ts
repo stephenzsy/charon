@@ -21,13 +21,18 @@ import {CertSubject} from '../lib/models/certs';
 import {CertFileBundle} from '../lib/models/certs';
 import User, * as Users from '../lib/models/users';
 import {InitCertsConfig} from '../models/init';
-import {Constants as ConfigConstants, NetworkInternal} from '../lib/config/config';
+import appConfig, {Constants as ConfigConstants, NetworkInternal, DbConfig} from '../lib/config/config';
 import {SystemUsers, getSystemUsers} from '../scripts/utils';
 import {sqlCharonSetup, sqlRadiusSetup} from './init';
+
+const dbConfig: DbConfig = appConfig.dbConfig;
 
 const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 const initNetworksConfig: NetworkConfig[] = require(path.join(ConfigConstants.ConfigInitDir, 'networks-config.json'));
 
+function getGrantUserQuery(user: string, host: string, tableName: string): string {
+  return "GRANT SELECT,INSERT,UPDATE,DELETE on radius." + tableName + " to '" + user + "'@'" + host + "'"
+}
 
 var counter: number = 0;
 var portBase: number = 10000;
@@ -36,6 +41,7 @@ async function configureNetwork(config: NetworkConfig, networksUser: User, rootU
   var radcheckModel = db.getRadcheckModel(sqlRadiusSetup, radcheckTableName);
 
   await radcheckModel.sync({ force: true });
+  await sqlRadiusSetup.sql.query(getGrantUserQuery(dbConfig.user, dbConfig.host, radcheckTableName), { type: sequelize.QueryTypes.RAW });
 
   var password: string = await createBase62Password(128);
   var network: Network = new Network(<NetworkInternal>{
