@@ -30,6 +30,7 @@ export interface CertInternal extends CommonDataInternal {
   state: string;
   networkId: string;
   subject: string;
+  userId: number;
 }
 
 export interface CertInstance extends Sequelize.Instance<CertInternal>, CertInternal {
@@ -90,6 +91,7 @@ export class DataAccessCert extends DataAccessCommon<CertModel> {
       });
     model.belongsTo(this.userModel, {
       foreignKey: {
+        allowNull: false,
         name: Columns.UserId
       },
       as: 'user',

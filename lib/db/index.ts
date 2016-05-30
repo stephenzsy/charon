@@ -16,6 +16,9 @@ const dbConfig: DbConfig = appConfig.dbConfig;
 
 export const sqlCharon: SqlCharon = configureSqlCharon(new _Sequelize('charon', dbConfig.user, dbConfig.password));
 
+/**
+ * @deprecated
+ */
 export const charonSequelize: Sequelize.Sequelize = sqlCharon.sql;
 
 export const UserModel: UserModels.UserModel = sqlCharon.userModel;

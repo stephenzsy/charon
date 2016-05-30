@@ -14,7 +14,7 @@ import {SystemUsers, getSystemUsers} from './utils';
 import {CertSubjectConfig, CaCertSubjectConfig, InitCertsConfig} from '../models/init';
 import {CertSubject, CertType} from '../lib/models/certs';
 import {createPrivateKey} from '../lib/certs/utils';
-import {charonSequelize} from '../lib/db/index';
+import {sqlCharon} from '../lib/db/index';
 import {CertInternal, CertInstance} from '../lib/db/certs';
 import {CertsManager, RootCaCertsManager} from '../lib/certs/certs-managers';
 import User, * as Users from '../lib/models/users';
@@ -23,11 +23,15 @@ import AppConfig, {Constants as ConfigConstants} from '../lib/config/config';
 const initCertsConfig: InitCertsConfig = require(path.join(ConfigConstants.ConfigInitDir, 'certs-config.json'));
 
 async function configure() {
-  var systemUsers: SystemUsers = await getSystemUsers();
-  void systemUsers.root.deleteCerts(CertType.CA, null);
-  var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);
-  await RootCaCertsManager.createRootCaCert(caSubject.subject, systemUsers.root);
-  charonSequelize.close();
+  try {
+    var systemUsers: SystemUsers = await getSystemUsers();
+    void systemUsers.root.deleteCerts(CertType.CA, null);
+    var caSubject: CertSubject = new CertSubject(initCertsConfig.ca);
+    await RootCaCertsManager.createRootCaCert(caSubject.subject, systemUsers.root);
+    sqlCharon.sql.close();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 configure();

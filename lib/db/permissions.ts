@@ -12,6 +12,7 @@ export module Columns {
 
 export interface PermissionInternal extends CommonDataInternal {
   scope: string;
+  userId: number;
 }
 
 export interface PermissionInstance extends Sequelize.Instance<PermissionInternal>, PermissionInternal { }
@@ -41,7 +42,7 @@ export class DataAccessPermission extends DataAccessCommon<PermissionModel> {
       'permission',
       this.createModelAttributes(), {});
     model.belongsTo(this.userModel, {
-      foreignKey: Columns.UserId, as: 'user', onDelete: 'CASCADE'
+      foreignKey: { allowNull: false, name: Columns.UserId }, as: 'user', onDelete: 'CASCADE'
     });
     this.userModel.hasMany(model, { foreignKey: Columns.UserId, as: 'permissions' });
     return model;

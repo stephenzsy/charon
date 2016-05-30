@@ -44,7 +44,9 @@ class CreateUserPasswordEnactor extends ActionEnactor<CreateUserPasswordRequest,
 
 class DeleteUserPasswordEnactor extends ActionEnactor<DeleteUserPasswordRequest, void> {
   async enactAsync(req: DeleteUserPasswordRequest): Promise<void> {
-    await Password.deleteById(req.id);
+    var password = await Password.findById(req.id);
+    await password.deactivate();
+    return password.delete();
   }
 }
 

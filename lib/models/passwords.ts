@@ -8,6 +8,7 @@ import {UserModel, PasswordModel, getRadcheckModel, sqlRadius} from '../db/index
 import {Columns as CommonColumns} from '../db/common';
 import {PasswordInternal, PasswordInstance, Columns as PasswordColumns} from '../db/passwds';
 import {UserInstance} from '../db/users';
+import {RadcheckInternal} from '../db/radcheck';
 
 import {ModelInstance} from './common';
 import {User} from './users';
@@ -52,21 +53,35 @@ export class Password extends ModelInstance<PasswordInstance> {
         username: user.username
       }
     });
-    await model.create({
+    var radcheck: RadcheckInternal = await model.create({
       username: user.username,
       attribute: 'Cleartext-Password',
       op: ':=',
-      value: this.instance.password
+      value: this.instance.password,
+      passwordId: this.id
     });
     this.instance.active = true;
+    this.instance.radcheckId = radcheck.id;
     await this.instance.save();
     return true;
   }
 
-  static async deleteById(id: string): Promise<number> {
+  async deactivate(): Promise<boolean> {
+    var model = getRadcheckModel(sqlRadius, this.network.radcheckTableName);
+    var user: User = await this.getUser();
+    var numDeleted = await model.destroy({
+      where: {
+        username: user.username
+      }
+    });
+    return numDeleted > 0;
+  }
+
+  static async findById(id: string): Promise<Password> {
     var whereClause: sequelize.WhereOptions = {}
     whereClause[CommonColumns.UID] = id;
-    return await PasswordModel.destroy({ where: whereClause });
+    var instance = await PasswordModel.find({ where: whereClause });
+    return new Password(instance);
   }
 
   static async find(user: User, network: Network): Promise<Password[]> {
@@ -77,7 +92,7 @@ export class Password extends ModelInstance<PasswordInstance> {
       userId: user.instance.id
     };
     if (network) {
-      whereClause[PasswordColumns.NETWORK_ID] = network.id;
+      whereClause[PasswordColumns.NetworkId] = network.id;
     }
     var instances: PasswordInstance[] = await PasswordModel.findAll({
       where: whereClause
@@ -94,10 +109,12 @@ export class Password extends ModelInstance<PasswordInstance> {
     }
     var password: string = await createBase62Password(16);
     var validTo: moment.Moment = _moment().add(30, 'd');
-    var instance: PasswordInstance = await PasswordModel.create(<PasswordInternal>{
+    var instance: PasswordInstance = await PasswordModel.create({
       password: password,
       validTo: validTo.toDate(),
-      networkId: network.id
+      networkId: network.id,
+      userId: user.instance.id,
+      active: false
     });
     instance = await instance.setUser(user.instance);
     return new Password(instance);

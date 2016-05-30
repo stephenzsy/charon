@@ -4,6 +4,20 @@ import Network from '../models/networks';
 import {getRadcheckModel, sqlRadius} from '../db/index';
 import {RadcheckInternal} from '../db/radcheck';
 
+export class RadcheckEntryAuditor implements Auditor {
+  private network: Network;
+  private radcheck: RadcheckInternal;
+
+  constructor(network: Network, radcheck: RadcheckInternal) {
+    this.network = network;
+    this.radcheck = radcheck;
+  }
+
+  async audit(): Promise<AuditReport> {
+    return null;
+  }
+}
+
 export class RadcheckAuditor implements Auditor {
   private radcheckTableName: string;
 

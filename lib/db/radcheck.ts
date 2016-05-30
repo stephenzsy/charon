@@ -26,6 +26,7 @@ export module Columns {
   export const ATTRIBUTE: string = 'attribute';
   export const OP: string = 'op';
   export const VALUE: string = 'value';
+  export const PASSWORD_ID: string = 'passwordId';
 }
 
 export interface RadcheckInternal {
@@ -34,6 +35,7 @@ export interface RadcheckInternal {
   attribute: string;
   op: string;
   value: string;
+  passwordId: string;
 }
 
 export interface RadcheckInstance extends Sequelize.Instance<RadcheckInternal>, RadcheckInternal {
@@ -53,7 +55,7 @@ export class DataAccessRadcheck implements DataAccess<RadcheckModel> {
   protected createModelAttributes(): Sequelize.DefineAttributes {
     var attributes: Sequelize.DefineAttributes = {};
     attributes[Columns.ID] = {
-      type: Sequelize.INTEGER.UNSIGNED,
+      type: Sequelize.INTEGER(11).UNSIGNED,
       primaryKey: true,
       autoIncrement: true
     };
@@ -73,6 +75,11 @@ export class DataAccessRadcheck implements DataAccess<RadcheckModel> {
       type: Sequelize.STRING(253),
       allowNull: false
     };
+    attributes[Columns.PASSWORD_ID] = {
+      type: Sequelize.UUID,
+      allowNull: false,
+      unique: true
+    }
     return attributes;
   }
 

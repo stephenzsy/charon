@@ -47,9 +47,8 @@ export class User extends ModelInstance<UserInstance> {
 
   async setPermissionScopes(scopes: string[]): Promise<void> {
     var permissions: PermissionInstance[] = await Promise.all(scopes.map(scope => {
-      return PermissionModel.create({ scope: scope });
+      return PermissionModel.create({ scope: scope, userId: this.instance.id });
     }));
-    return this.instance.setPermissions(permissions);
   }
 
   async getCaCertSerial(network: Network): Promise<number> {

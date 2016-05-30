@@ -2,7 +2,7 @@
 
 import {CertSubjectConfig, CaCertSubjectConfig} from '../../models/init';
 import Constants from '../constants';
-import {UserModel, PasswordModel, CertModel} from '../db/index';
+import {sqlCharon, PasswordModel} from '../db/index';
 import {ModelInstance} from './common';
 import {CertInstance, CertInternal, CertTypeStr, CertStateStr} from '../db/certs';
 import {UserInstance} from '../db/users';
@@ -102,7 +102,7 @@ export class Cert extends ModelInstance<CertInstance> {
   }
 
   static async findBySerial(serial: number): Promise<Cert> {
-    var instance: CertInstance = await CertModel.findById(serial);
+    var instance: CertInstance = await sqlCharon.certModel.findById(serial);
     if (instance) {
       return new Cert(instance);
     }
@@ -120,18 +120,19 @@ export class Cert extends ModelInstance<CertInstance> {
   }
 
   static async createPending(type: CertType, subject: string, network: Network, user: User): Promise<Cert> {
-    var instance: CertInstance = await CertModel.create(<CertInternal>{
+    console.log(sqlCharon.certModel);
+    var instance: CertInstance = await sqlCharon.certModel.create({
       type: certTypeToStr(type),
       state: CertStateStr.Pending,
       networkId: network ? network.id : Constants.UUID0,
-      subject: subject
+      subject: subject,
+      userId: user.instance.id
     });
-    instance = await instance.setUser(user.instance);
     return new Cert(instance);
   }
 
   static async clearAllServerCerts(): Promise<void> {
-    await CertModel.destroy({ where: { type: CertTypeStr.Server } });
+    await sqlCharon.certModel.destroy({ where: { type: CertTypeStr.Server } });
   }
 }
 

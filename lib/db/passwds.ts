@@ -6,11 +6,12 @@ import {CommonDataInternal, DataAccessCommon} from './common'
 import {UserModel, UserInternal, UserInstance, Columns as UserColumns} from './users'
 
 export module Columns {
-  export const USER_ID: string = 'userId';
-  export const NETWORK_ID: string = 'networkId';
-  export const PASSWORD: string = 'password';
-  export const VALID_TO: string = 'validTo';
-  export const ACTIVE: string = 'active';
+  export const UserId: string = 'userId';
+  export const NetworkId: string = 'networkId';
+  export const Password: string = 'password';
+  export const ValidTo: string = 'validTo';
+  export const Active: string = 'active';
+  export const PasswordRadcheckId: string = 'radcheckId';
 }
 
 export interface PasswordInternal extends CommonDataInternal {
@@ -18,6 +19,8 @@ export interface PasswordInternal extends CommonDataInternal {
   password: string;
   validTo: Date;
   active: boolean;
+  radcheckId?: number;
+  userId: number;
 }
 
 export interface PasswordInstance extends Sequelize.Instance<PasswordInternal>, PasswordInternal {
@@ -39,23 +42,26 @@ export class DataAccessPassword extends DataAccessCommon<PasswordModel> {
 
   protected createModelAttributes(): Sequelize.DefineAttributes {
     var attributes: Sequelize.DefineAttributes = super.createModelAttributes();
-    attributes[Columns.NETWORK_ID] = {
+    attributes[Columns.NetworkId] = {
       type: Sequelize.UUID,
       allowNull: false
     };
-    attributes[Columns.PASSWORD] = {
+    attributes[Columns.Password] = {
       type: Sequelize.STRING(128),
       allowNull: false
     };
-    attributes[Columns.VALID_TO] = {
+    attributes[Columns.ValidTo] = {
       type: Sequelize.DATE,
       allowNull: false
     };
-    attributes[Columns.ACTIVE] = {
+    attributes[Columns.Active] = {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: true
     };
+    attributes[Columns.PasswordRadcheckId] = {
+      type: Sequelize.INTEGER(11).UNSIGNED,
+      allowNull: true
+    }
     return attributes;
   }
 
@@ -67,12 +73,21 @@ export class DataAccessPassword extends DataAccessCommon<PasswordModel> {
         indexes: [
           {
             unique: true,
-            fields: [Columns.USER_ID, Columns.NETWORK_ID]
+            fields: [Columns.UserId, Columns.NetworkId]
+          },
+          {
+            unique: true,
+            fields: [Columns.NetworkId, Columns.PasswordRadcheckId]
           }
         ]
       });
 
-    model.belongsTo(this.userModel, { foreignKey: Columns.USER_ID, as: 'user' });
+    model.belongsTo(this.userModel, {
+      foreignKey: {
+        allowNull: false,
+        name: Columns.UserId
+      }, as: 'user'
+    });
     return model;
   }
 }
